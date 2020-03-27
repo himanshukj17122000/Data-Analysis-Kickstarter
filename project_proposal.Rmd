@@ -16,5 +16,10 @@ Please adjust the title to something meaningful. Do not keep it as
 
 # Introduction
 
+Our general research question to find out what are the most important factors
+in contributing to the success of a startup company. Our dataset is comprised
+of the statistics from over 300,000 Kickstarter companies, collected directly
+the Kickstarter Platform from  and includes variables such as.
+
 # Data Analysis Plan
 
