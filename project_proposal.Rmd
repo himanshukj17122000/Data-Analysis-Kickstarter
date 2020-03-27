@@ -21,5 +21,9 @@ in contributing to the success of a startup company. Our dataset is comprised
 of the statistics from over 300,000 Kickstarter companies, collected directly
 the Kickstarter Platform from  and includes variables such as.
 
+why are we interested into it?
+we noticed there are some seemingly important factors
+
 # Data Analysis Plan
 
+bar plots --> binary variables vs others we think are important
