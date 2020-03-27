@@ -1,7 +1,7 @@
 ---
 title: "Project"
 subtitle: ""
-author: "Lab Group - Member 1, Member 2, Member 3, Member 4"
+author: "Lab Group - Tri Truong, Tessa Grabowski, Paul Noujaim, Himanshu Jain"
 output: pdf_document
 ---
 
@@ -12,3 +12,23 @@ knitr::opts_chunk$set(echo = FALSE, comment = NA,
 ```
 
 Please adjust the title to something meaningful. Do not keep it as "Project".
+
+# Packages
+
+```{r packages}
+library(tidyverse)
+library(class)
+library(broom)
+library(usethis)
+```
+
+# Data
+
+```{r dataset}
+kickstart <- read_csv("data/ks-projects-201612.csv")
+```
+
+```{r}
+kickstart
+```
+
