@@ -19,7 +19,10 @@ Please adjust the title to something meaningful. Do not keep it as
 Our general research question to find out what are the most important factors
 in contributing to the success of a startup company. Our dataset is comprised
 of the statistics from over 300,000 Kickstarter companies, collected directly
-the Kickstarter Platform from  and includes variables such as.
+the Kickstarter Platform. It includes variables that could be essential in determining the success of a startup such as, the amount of money pledged to a startup, the number of backers the project has, or the industry the company is 
+in. The key variable we are looking at is the binary variable called "state",
+which shows which startups were successful and which were not. It will be our response variable in the analyses. We think this analysis of this data would be particulary useful if any member of our group wanted to start our own company by giving us an idea about which factors are key in indicating the future success
+of a startup.
 
 why are we interested into it?
 we noticed there are some seemingly important factors
