@@ -19,14 +19,66 @@ Please adjust the title to something meaningful. Do not keep it as
 Our general research question to find out what are the most important factors
 in contributing to the success of a startup company. Our dataset is comprised
 of the statistics from over 300,000 Kickstarter companies, collected directly
-the Kickstarter Platform. It includes variables that could be essential in determining the success of a startup such as, the amount of money pledged to a startup, the number of backers the project has, or the industry the company is 
-in. The key variable we are looking at is the binary variable called "state",
-which shows which startups were successful and which were not. It will be our response variable in the analyses. We think this analysis of this data would be particulary useful if any member of our group wanted to start our own company by giving us an idea about which factors are key in indicating the future success
-of a startup.
+the Kickstarter Platform (found on Kaggle). It includes variables that could be
+essential in determining the success of a startup such as, the amount of money 
+pledged to a startup, the number of backers the project has, or the industry the
+company is in. The key variable we are looking at is the binary variable called 
+"state", which shows which startups were successful and which were not. It will 
+be our response variable in the analyses. We think this analysis of this data 
+would be particulary useful if any member of our group wanted to start our own 
+company by giving us an idea about which factors are key in indicating the 
+future success of a startup.
+
+Kickstarter is a global crowdfunding platform where different products can be 
+listed in different categories like music, arts, technology etc. Till date, 
+the company has received over $4.6 billion in funding from almost 17.2 million
+backers. I believe that it would be interesting to analyse the data from this 
+company to recognise the reason behind its success and how useful it might be 
+for upcoming projects. Many new products are launched everyday so it would also
+provide an insight to the developer as to what products would have a higher 
+rate of success. 
+
+The different variables in this dataset are- ID, name (name of the project), 
+category(category of the project), main category, currency, deadline, goal 
+(amount of money required), launched, pledged (amount of money the project got), 
+state, backers, country, usd pledged. We believe that most of these variables 
+would be really important in providing us an insight about the data/company. 
 
 why are we interested into it?
 we noticed there are some seemingly important factors
 
 # Data Analysis Plan
+```{r packages}
+library(tidyverse)
+library(class)
+library(broom)
+library(usethis)
+```
+```{r reading the data}
+kickstart <- read_csv("data/ks-projects-201612.csv")
+glimpse(kickstart)
+```
+
+```{r success rate}
+kickstart%>%
+  group_by(state)%>%
+  filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
+           state=='suspended'|state=='undefined')%>%
+
+  count()
+```
+```{r category wise}
+kickstart%>%
+  group_by(category)%>%
+  count()%>%
+  filter(n>100)
+```
+```{r main categories}
+kickstart%>%
+  group_by(main_category)%>%
+  count()%>%
+  filter(n>100)
+```
+
 
 bar plots --> binary variables vs others we think are important
