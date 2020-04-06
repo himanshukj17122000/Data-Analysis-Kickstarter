@@ -1,5 +1,5 @@
 ---
-title: "Project Proposal"
+title: "What Makes A Successful Startup Company?"
 author: "Lab Group - Tessa Grabowski, Himanshu Jain, Paul Noujaim, Tri Truong"
 subtitle: ''
 output:
@@ -13,8 +13,7 @@ knitr::opts_chunk$set(echo = FALSE, comment = NA,
                       fig.height=6, fig.width = 9, fig.align = "center")
 ```
 
-Please adjust the title to something meaningful. Do not keep it as 
-"Project Proposal".
+
 
 # Introduction
 
@@ -24,7 +23,7 @@ of the statistics from over 300,000 Kickstarter proposals, collected directly
 from the Kickstarter Platform (found on Kaggle). It includes variables that 
 could be essential to determining the success of a startup such as, the amount 
 of money pledged to a startup, the number of backers the project has, or the 
-industry the project corresponds to. The key variable we are looking at is the 
+industry the company is in. The key variable we are looking at is the 
 binary variable called "state", which shows which startups were successful 
 and which were not. This will be our response variable in the analyses. We think 
 this analysis of this data would be particularly useful if any member of our 
@@ -55,12 +54,12 @@ library(class)
 library(broom)
 library(usethis)
 ```
-```{r reading the data}
+```{r reading_the_data}
 kickstart <- read_csv("data/ks-projects-201612.csv")
 glimpse(kickstart)
 ```
 
-```{r success rate}
+```{r success_rate}
 kickstart%>%
   group_by(state)%>%
   filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
@@ -73,21 +72,21 @@ include these companies. We are interested in what makes a project successful
 versus unsuccessful, so any entry with a different state will be irrelevant to 
 our analysis.
 
-```{r category wise}
+```{r category_wise}
 kickstart%>%
   group_by(category)%>%
   count()%>%
-  filter(n>100)
+  filter(n > 100)
 ```
-```{r main categories}
+```{r main_categories}
 kickstart%>%
   group_by(main_category)%>%
   count()%>%
-  filter(n>100)
+  filter(n > 100)
 ```
 Looking at the numbers in the categories and main categories, we can get a
 better idea at what kind of projects are more successful than others. Knowing
-this will help us narrow down what the crowd is interested in investing in and 
+this will help us narrow down what the crowd is interested in investing in, and 
 what fields people are more likely to succeed in if they were to create their
 own project. 
 
@@ -158,6 +157,10 @@ We also will use confidence intervals for the mean amount of money required,
 number of backers necessary, amount pledged, etc. that we expect a successful
 company to have. 
 
+Finally, we will use a linear regression model to figure out which variables are
+the most significant in determining the eventual 'state' of the startup, 
+whether they ended up being successful or unsuccessful.
+
 Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
-future if we ever want to create our own projects.
+future if we ever want to start our own companies.
