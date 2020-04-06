@@ -1,8 +1,10 @@
 ---
 title: "Project Proposal"
-subtitle: ""
 author: "Lab Group - Tessa Grabowski, Himanshu Jain, Paul Noujaim, Tri Truong"
-output: pdf_document
+subtitle: ''
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -113,9 +115,12 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
 This table shows that there is a large gap between the amount of money 
 pledged to projects that failed as opposed to those that were successful. The
 average amount of money pledged to successful projects is more than ten 
-times greater than that pledged to failed projects. We can also see this in the bar plot above, as the bar for successful projects is significantly higher than the bar for failed. In addition, the range of money pledged to successful 
+times greater than that pledged to failed projects. We can also see this in the 
+bar plot above, as the bar for successful projects is significantly higher than 
+the bar for failed. In addition, the range of money pledged to successful 
 projects is significantly greater than the range of failed projects. 
-These statistics suggest that the variable `pledged`has an effect on determining the state of a project.
+These statistics suggest that the variable `pledged`has an effect on determining
+the state of a project.
 
 Another variable we are interested in is `goal`. `Goal`gives the amount of money
 needed by a creator to fund and finish their project. 
@@ -146,10 +151,13 @@ and how they interact could be very telling of the outcome of the project.
 Further, in our analysis, we will use other statistical methods to answer our 
 question of what makes a project successful. We will create our own hypothetical
 projects and determine statistics for the needed variables. Then we will use
-the knn method to predict if this project will be successful or not based on the data we have. 
+the knn method to predict if this project will be successful or not based on the
+data we have. 
+
 We also will use confidence intervals for the mean amount of money required,
 number of backers necessary, amount pledged, etc. that we expect a successful
 company to have. 
+
 Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
 future if we ever want to create our own projects.
