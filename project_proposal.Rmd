@@ -17,23 +17,23 @@ Please adjust the title to something meaningful. Do not keep it as
 # Introduction
 
 Our general research question to find out what are the most important factors
-in contributing to the success of a startup company. Our dataset is comprised
-of the statistics from over 300,000 Kickstarter companies, collected directly
-the Kickstarter Platform (found on Kaggle). It includes variables that could be
-essential in determining the success of a startup such as, the amount of money 
-pledged to a startup, the number of backers the project has, or the industry the
-company is in. The key variable we are looking at is the binary variable called 
-"state", which shows which startups were successful and which were not. It will 
-be our response variable in the analyses. We think this analysis of this data 
-would be particulary useful if any member of our group wanted to start our own 
-company by giving us an idea about which factors are key in indicating the 
-future success of a startup.
+in contributing to the success of a startup project. Our dataset is comprised
+of the statistics from over 300,000 Kickstarter proposals, collected directly
+from the Kickstarter Platform (found on Kaggle). It includes variables that 
+could be essential to determining the success of a startup such as, the amount 
+of money pledged to a startup, the number of backers the project has, or the 
+industry the project corresponds to. The key variable we are looking at is the 
+binary variable called "state", which shows which startups were successful 
+and which were not. This will be our response variable in the analyses. We think 
+this analysis of this data would be particularly useful if any member of our 
+group wanted to start our own creative project by giving us an idea about which 
+factors are key in indicating the future success of a startup.
 
 Kickstarter is a global crowdfunding platform where different products can be 
 listed in different categories like music, arts, technology etc. Till date, 
 the company has received over $4.6 billion in funding from almost 17.2 million
-backers. I believe that it would be interesting to analyse the data from this 
-company to recognise the reason behind its success and how useful it might be 
+backers. We believe that it would be interesting to analyze the data from this 
+company to recognize the reason behind its success and how useful it might be 
 for upcoming projects. Many new products are launched everyday so it would also
 provide an insight to the developer as to what products would have a higher 
 rate of success. 
@@ -41,13 +41,12 @@ rate of success.
 The different variables in this dataset are- ID, name (name of the project), 
 category(category of the project), main category, currency, deadline, goal 
 (amount of money required), launched, pledged (amount of money the project got), 
-state, backers, country, usd pledged. We believe that most of these variables 
-would be really important in providing us an insight about the data/company. 
-
-why are we interested into it?
-we noticed there are some seemingly important factors
+state, backers, country, and usd pledged. We believe that some of these 
+variables would be really important in providing us an insight about the 
+data/company. 
 
 # Data Analysis Plan
+
 ```{r packages}
 library(tidyverse)
 library(class)
@@ -64,9 +63,14 @@ kickstart%>%
   group_by(state)%>%
   filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
            state=='suspended'|state=='undefined')%>%
-
   count()
 ```
+From this table, we see that most of the companies have a state of either failed
+or successful. Thus when we are analyzing our data, we will filter it to only 
+include these companies. We are interested in what makes a project successful
+versus unsuccessful, so any entry with a different state will be irrelevant to 
+our analysis.
+
 ```{r category wise}
 kickstart%>%
   group_by(category)%>%
@@ -79,6 +83,73 @@ kickstart%>%
   count()%>%
   filter(n>100)
 ```
+Looking at the numbers in the categories and main categories, we can get a
+better idea at what kind of projects are more successful than others. Knowing
+this will help us narrow down what the crowd is interested in investing in and 
+what fields people are more likely to succeed in if they were to create their
+own project. 
 
+The variable `pledged` tells the amount of money pledged by the crowd, or users
+of the site. 
 
-bar plots --> binary variables vs others we think are important
+```{r pledged_needed}
+pledged_needed <- kickstart %>%
+  group_by(state) %>%
+  filter(state=='failed'|state=='successful') %>%
+  summarise(mean = mean(pledged), 
+            min = min(pledged),
+            max = max(pledged)) %>%
+  mutate(range = max - min)
+
+pledged_needed
+
+ggplot(data = pledged_needed, mapping = aes(x = state, y = mean, 
+                                            fill = state)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(title = "Successful Projects Generally Receive More Pledged Money",
+       x = "State", y = "Pledged ($)", fill = "State")
+```
+This table shows that there is a large gap between the amount of money 
+pledged to projects that failed as opposed to those that were successful. The
+average amount of money pledged to successful projects is more than ten 
+times greater than that pledged to failed projects. We can also see this in the bar plot above, as the bar for successful projects is significantly higher than the bar for failed. In addition, the range of money pledged to successful 
+projects is significantly greater than the range of failed projects. 
+These statistics suggest that the variable `pledged`has an effect on determining the state of a project.
+
+Another variable we are interested in is `goal`. `Goal`gives the amount of money
+needed by a creator to fund and finish their project. 
+
+```{r goal_bar}
+avg_goal <- kickstart %>%
+  group_by(state) %>%
+  filter(state=='failed'|state=='successful') %>%
+  summarise(mean_goal = mean(goal))
+
+ggplot(data = avg_goal, mapping = aes(x = state, y = mean_goal, fill = state)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(title = "Failed Projects Generally Require More Money",
+       x = "State", y = "Average Goal ($)", fill = "State")
+```
+This visualization shows that failed projects generally were much more expensive
+to create than successful projects. This is very useful in our analysis, since
+it suggests that there is possibly a threshold to how much money can be required
+by the creator before the project becomes unreasonable and fails. 
+
+In our analysis it could be interesting to compare the goal of a creator to how 
+much they received from pledged money as well. Looking at these two variables 
+and how they interact could be very telling of the outcome of the project.
+
+# Statistical Methods 
+
+Further, in our analysis, we will use other statistical methods to answer our 
+question of what makes a project successful. We will create our own hypothetical
+projects and determine statistics for the needed variables. Then we will use
+the knn method to predict if this project will be successful or not based on the data we have. 
+We also will use confidence intervals for the mean amount of money required,
+number of backers necessary, amount pledged, etc. that we expect a successful
+company to have. 
+Using these methods, we will hopefully be able to determine why certain projects
+are successful while others are not and use this information to help us in the
+future if we ever want to create our own projects.
