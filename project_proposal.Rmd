@@ -220,3 +220,61 @@ whether they ended up being successful or unsuccessful.
 Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
 future if we ever want to start our own companies.
+
+
+```{r}
+library(dplyr)
+```
+```{r}
+kickstart <- kickstart %>%
+  select(-(X14:X17)) %>%
+  rename(usd_pledged = `usd pledged`)
+
+kickstart
+```
+```{r}
+set.seed(03052020)
+indices <- sample(nrow(kickstart), 25)
+```
+```{r}
+kickstart_train <- kickstart %>%
+  slice(-indices) %>%
+  select(category, main_category, goal, backers, usd_pledged)
+
+kickstart_test <- kickstart %>%
+  slice(indices) %>%
+  select(category, main_category, goal, backers, usd_pledged)
+
+train_state <- kickstart %>%
+  slice(-indices) %>%
+  pull(state)
+
+test_state <- kickstart %>%
+  slice(indices) %>%
+  pull(state)
+
+kickstart_train
+kickstart_test
+train_state
+test_state
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
