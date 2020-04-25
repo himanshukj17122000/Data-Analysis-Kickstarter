@@ -226,30 +226,31 @@ future if we ever want to start our own companies.
 library(dplyr)
 ```
 ```{r}
-kickstart <- kickstart %>%
+kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
-  rename(usd_pledged = `usd pledged`)
+  rename(usd_pledged = `usd pledged`) %>%
+  na.omit()
 
-kickstart
+kickstart_new
 ```
 ```{r}
 set.seed(03052020)
-indices <- sample(nrow(kickstart), 25)
+indices <- sample(nrow(kickstart_new), 25)
 ```
 ```{r}
-kickstart_train <- kickstart %>%
+kickstart_train <- kickstart_new %>%
   slice(-indices) %>%
   select(category, main_category, goal, backers, usd_pledged)
 
-kickstart_test <- kickstart %>%
+kickstart_test <- kickstart_new %>%
   slice(indices) %>%
   select(category, main_category, goal, backers, usd_pledged)
 
-train_state <- kickstart %>%
+train_state <- kickstart_new %>%
   slice(-indices) %>%
   pull(state)
 
-true_state <- kickstart %>%
+true_state <- kickstart_new %>%
   slice(indices) %>%
   pull(state)
 
@@ -258,6 +259,16 @@ kickstart_test
 train_state
 true_state
 ```
+
+
+values <- numeric(12) 
+for(i in 1:12) {
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
+  x <- mean(trains_knn == true_state)  
+  values[i] <- x
+}
+tibble(values)
+which.max(values)
 
 
 
