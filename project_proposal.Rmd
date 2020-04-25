@@ -249,14 +249,14 @@ train_state <- kickstart %>%
   slice(-indices) %>%
   pull(state)
 
-test_state <- kickstart %>%
+true_state <- kickstart %>%
   slice(indices) %>%
   pull(state)
 
 kickstart_train
 kickstart_test
 train_state
-test_state
+true_state
 ```
 
 
