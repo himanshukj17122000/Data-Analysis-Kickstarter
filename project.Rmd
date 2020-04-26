@@ -306,6 +306,17 @@ train_knn
 mean(train_knn == true_state)
 ```
 
+```{r knn_best}
+values <- numeric(12) 
+for(i in 1:12) {
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
+  x <- mean(trains_knn == true_state)  
+  values[i] <- x
+}
+tibble(values)
+which.max(values)
+```
+
 ```{r visualize_distributions}
 ggplot(kickstart_new, mapping = aes(x = goal)) +
   geom_histogram(binwidth = 10)
@@ -368,43 +379,40 @@ mod_knn
 -but backers do effect state (first example, even if pledged below goal)
 
 
-values <- numeric(12) 
-for(i in 1:12) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
-  x <- mean(trains_knn == true_state)  
-  values[i] <- x
-}
-tibble(values)
-which.max(values)
-
 ## Confidence Intervals
 
 ```{r}
 kickstart_new %>%
-   filter(state == "successful") %>% 
+  filter(state == "successful") %>% 
   specify(response = pledged) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
 
+Using these calculations, we are 95% confident that the true successful startup's amount pledged by the backers will be in the (0.1187411, 0.1398106) interval. 
+
 ```{r}
 kickstart_new %>%
-   filter(state == "successful") %>% 
+  filter(state == "successful") %>% 
   specify(response = backers) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
 
+Using these calculations, we are 95% confident that the true successful startup's number of backers will be in the (0.133755, 0.1494601) interval. 
+
 ```{r}
 kickstart_new %>%
-   filter(state == "successful") %>% 
+  filter(state == "successful") %>% 
   specify(response = goal) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
+
+Using these calculations, we are 95% confident that the true successful startup's requested amount will be in the (-0.03102419, -0.03071722) interval. 	
 
 ## Linear Model 
 
@@ -444,4 +452,35 @@ ggplot(m_pledged_aug, mapping = aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.5) +
   geom_hline(yintercept = 0, color = "blue", lty = 2) 
 ```
+
+## Check Independence
+
+```{r conditions_check_independence}
+full_model <- augment(step_full)
+ggplot(data = full_model, aes(x = 1:nrow(full_model), y = .resid)) +
+geom_point() +
+labs(x = "Index", y = "Residual", title="Residuals vs Index",
+     subtitle = "Both the variables seems independent")+
+  theme_minimal(base_size = 16)
+```
+
+```{r residual_variance}
+ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(title="Residuals vs the fitted value", y = "Residuals", 
+       x = expression(hat(y)), 
+       subtitle="We can see constant variance and distrbution to be around 0") +
+  theme_minimal(base_size = 16)
+```
+
+```{r histogram}
+ggplot(data = full_model, aes(x = .resid)) +
+  geom_histogram() +
+  labs(title="Count vs Residuals", 
+       subtitle="The histogram seems to be centered around 0",
+       x = "Residuals", y = "Count") +
+  theme_minimal(base_size = 16)
+```
+
 
