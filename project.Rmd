@@ -262,8 +262,48 @@ kickstart_new <- kickstart %>%
 
 kickstart_new
 ```
+```{r new_variables}
+kickstart_new <- kickstart_new%>%
+  mutate(
+    goal = ((goal- mean(goal)) / sd(goal)),
+    pledged = ((pledged - mean(pledged)) / sd(pledged)),
+    backers = ((backers - mean(backers)) / sd(backers))
+  )
+```
 ```{r set_seed}
 set.seed(03052020)
+indices <- sample(nrow(kickstart_new), 25)
+```
+
+```{r new_datasets}
+kickstart_train <- kickstart_new %>%
+  slice(-indices) %>%
+  select(goal, pledged,backers) 
+
+kickstart_test <- kickstart_new %>%
+  slice(indices) %>%
+  select(goal, pledged,backers)
+  
+train_state <- kickstart_new %>%
+  slice(-indices) %>%
+  pull(state)
+
+kickstart_train
+kickstart_test
+train_state
+```
+```{r true_types}
+true_state <- kickstart_new %>%
+  slice(indices) %>%
+  pull(state)
+
+true_state
+```
+```{r knn}
+train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 200, prob = F, use.all = F)
+train_knn 
+
+mean(train_knn == true_state)
 ```
 
 ```{r visualize_distributions}
