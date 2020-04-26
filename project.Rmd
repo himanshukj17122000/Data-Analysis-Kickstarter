@@ -357,10 +357,23 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
 glance(step_full)
 tidy(step_full)
 ```
+```{r}
+backers_out <- kickstart_new %>%
+  filter(backers <= 500) %>%
+  filter(pledged <= 25000)
+```
 
 ```{r}
 m_pledged <- lm(pledged ~ backers, backers_out)
 
 tidy(m_pledged)
+glance(m_pledged)
+```
+
+```{r}
+m_pledged_aug <- augment(m_pledged)
+ggplot(m_pledged_aug, mapping = aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.5) +
+  geom_hline(yintercept = 0, color = "blue", lty = 2) 
 ```
 
