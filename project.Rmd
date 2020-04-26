@@ -223,42 +223,81 @@ Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
 future if we ever want to start our own companies.
 
-
+## K-NN 
 
 ```{r}
 kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
-  rename(usd_pledged = `usd pledged`) %>%
+  rename(usd_pledged = 'usd pledged') %>%
+  filter(state == "successful" | state == "failed") %>%
   na.omit()
 
 kickstart_new
 ```
-```{r}
+```{r set_seed}
 set.seed(03052020)
-indices <- sample(nrow(kickstart_new), 25)
 ```
-```{r}
-kickstart_train <- kickstart_new %>%
-  slice(-indices) %>%
-  select(category, main_category, goal, backers, usd_pledged)
 
-kickstart_test <- kickstart_new %>%
-  slice(indices) %>%
-  select(category, main_category, goal, backers, usd_pledged)
-
-train_state <- kickstart_new %>%
-  slice(-indices) %>%
-  pull(state)
-
-true_state <- kickstart_new %>%
-  slice(indices) %>%
-  pull(state)
-
-kickstart_train
-kickstart_test
-train_state
-true_state
+```{r visualize_distributions}
+ggplot(kickstart_new, mapping = aes(x = goal)) +
+  geom_histogram(binwidth = 10)
 ```
+
+
+```{r create_values}
+mean_goal <- kickstart_new %>%
+  group_by(state) %>%
+  filter(state=='successful') %>%
+  summarise(mean_goal = mean(goal))
+
+mean_pledged <- kickstart_new %>%
+  group_by(state) %>%
+  filter(state=='successful') %>%
+  summarise(mean_pledged = mean(pledged))
+
+mean_backers <- kickstart_new %>%
+  group_by(state) %>%
+  filter(state=='successful') %>%
+  summarise(mean_backers = mean(backers))
+
+mode_category <- kickstart_new %>%
+  group_by(main_category) %>%
+  count()%>%
+  arrange(desc(n))
+  
+
+mode_country <- kickstart_new %>%
+  group_by(country) %>%
+  count() %>%
+  arrange(desc(n))
+
+mean_goal
+mean_pledged
+mean_backers
+mode_category
+mode_country
+```
+
+```{r predicting_project_succes}
+new_project <- tibble(goal = c(1000, 9627.803, 27000),
+                      pledged = c(925, 21480.74, 24000),
+                      backers = c(15, 253.86, 750))
+                      #main_category = c("Dance", "Film & Video", "Food"),
+                      #country = c("LU", "US", "GB"))
+
+
+train <- kickstart_new %>% 
+  select(goal, pledged, backers)
+
+success_state <- kickstart_new %>% 
+  pull(state) 
+
+library(class)
+mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+mod_knn
+```
+-pledged and goal have more significant effect on determining state than backers
+-but backers do effect state (first example, even if pledged below goal)
 
 
 values <- numeric(12) 
@@ -275,7 +314,7 @@ which.max(values)
 ```{r}
 kickstart_new %>%
    filter(state == "successful") %>% 
-  specify(response = usd_pledged) %>% 
+  specify(response = pledged) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
@@ -302,10 +341,15 @@ kickstart_new %>%
 ## Linear Model 
 
 ```{r all the variables}
-m_full <- lm(state ~ main_category + goal + backers + usd_pledged + country
-            , data = kickstart_new)
-```
+m_full <- lm(factor(state) ~ goal + backers + pledged,
+            data = kickstart_new)
 
+glance(m_full)
+tidy(m_full)
+```
+QUESTION:
+- why no r-squared if factored
+-response variable --> can it be categorical?
 
 ```{r full model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
@@ -313,3 +357,10 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
 glance(step_full)
 tidy(step_full)
 ```
+
+```{r}
+m_pledged <- lm(pledged ~ backers, backers_out)
+
+tidy(m_pledged)
+```
+

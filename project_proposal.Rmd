@@ -270,6 +270,21 @@ for(i in 1:12) {
 tibble(values)
 which.max(values)
 
+```{r predicting_project}
+new_project <- tibble(#hp  = c(55, 90, 104),
+                      #atk = c(25, 110, 125),
+                      #def = c(30, 130, 105),
+                      #spa = c(60, 75, 148),
+                      #spd = c(50, 80, 102),
+                      #spe = c(102, 45, 136))
+train <- kickstart %>% 
+  select(variables)
+success_state <- pokemon %>% 
+  pull(success) # must pull classes as a vector!
+library(class)
+mod_knn <- knn(train, new_project, legendary_status, k = 30, prob = F, use.all = T)
+mod_knn
+```
 
 
 
