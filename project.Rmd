@@ -67,45 +67,62 @@ kickstart%>%
   group_by(state)%>%
   filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
            state=='suspended'|state=='undefined')%>%
-  count()
+  count(state)%>%
+  ungroup()%>%
+  mutate(rate = n/sum(n))%>%
+  arrange(n)
 ```
 From this table, we see that most of the companies have a state of either failed
 or successful. Thus when we are analyzing our data, we will filter it to only 
 include these companies. We are interested in what makes a project successful
 versus unsuccessful, so any entry with a different state will be irrelevant to 
-our analysis.
+our analysis. We can also see that most of the companies failed so it is really
+important to understand the problems in order to launch a successful campaign. 
+Hence, we believe that this analysis would be helpful for future entrepreneurs.
 
 ```{r category_wise}
 kickstart%>%
   group_by(category)%>%
   count()%>%
-  filter(n > 100)
+  filter(n > 100)%>%
+  arrange(desc(n))
 ```
 ```{r main_categories}
 kickstart%>%
   group_by(main_category)%>%
   count()%>%
-  filter(n > 100)
+  filter(n > 100)%>%
+  arrange(desc(n))%>%
+  ungroup()%>%
+  mutate(share_of_projects = n/sum(n))
 ```
 Looking at the numbers in the categories and main categories, we can get a
 better idea at what kind of projects are more successful than others. Knowing
 this will help us narrow down what the crowd is interested in investing in, and 
 what fields people are more likely to succeed in if they were to create their
-own project. 
+own project. We can see that Film and Video is the most common category and 
+Product Design is the most common sub-category. We also chose to take only 
+those columns that had more than 100 campaigns since the data is not clean 
+and there are a lot of values that would not be allow us to present desired 
+results.
 
 The variable `pledged` tells the amount of money pledged by the crowd, or users
 of the site. 
 
-```{r pledged_needed}
+```{r pledged_needed, fig.width=9, fig.height=5}
 pledged_needed <- kickstart %>%
   group_by(state) %>%
   filter(state=='failed'|state=='successful') %>%
   summarise(mean = mean(pledged), 
             min = min(pledged),
-            max = max(pledged)) %>%
+            max = max(pledged),
+            goal_mean = mean(goal)) %>%
   mutate(range = max - min)
 
 pledged_needed
+
+kickstart_states<-kickstart%>%
+  filter(state=='failed'|state=='successful')
 
 ggplot(data = pledged_needed, mapping = aes(x = state, y = mean, 
                                             fill = state)) +
@@ -113,6 +130,12 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
   theme_bw() +
   labs(title = "Successful Projects Generally Receive More Pledged Money",
        x = "State", y = "Pledged ($)", fill = "State")
+
+ggplot(data = kickstart_states,mapping = aes(y = pledged, x = goal, 
+                                           color = factor(state))) +
+  geom_point(alpha = 0.3) +
+  labs(color = "Goal of the Project", y = "Pledged Money") +
+  theme_bw(base_size = 16)
 ```
 This table shows that there is a large gap between the amount of money 
 pledged to projects that failed as opposed to those that were successful. The
@@ -120,9 +143,13 @@ average amount of money pledged to successful projects is more than ten
 times greater than that pledged to failed projects. We can also see this in the 
 bar plot above, as the bar for successful projects is significantly higher than 
 the bar for failed. In addition, the range of money pledged to successful 
-projects is significantly greater than the range of failed projects. 
-These statistics suggest that the variable `pledged`has an effect on determining
-the state of a project.
+projects is significantly greater than the range of failed projects. We can also
+see that the failed projects required much more money than the successful 
+projects and even then they didn't receive much money. We believe that the 
+large amount of money required makes people not pledge money for that project 
+and hence, we believe that we should be having a realistic goal for the project
+to be successful on kickstarter. These statistics suggest that the variable 
+`pledged`has an effect on determining the state of a project.
 
 Another variable we are interested in is `goal`. `Goal`gives the amount of money
 needed by a creator to fund and finish their project. 
@@ -230,6 +257,7 @@ kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
   rename(usd_pledged = 'usd pledged') %>%
   filter(state == "successful" | state == "failed") %>%
+  mutate(state = factor(state))%>%
   na.omit()
 
 kickstart_new
@@ -341,7 +369,7 @@ kickstart_new %>%
 ## Linear Model 
 
 ```{r all the variables}
-m_full <- lm(factor(state) ~ goal + backers + pledged,
+m_full <- lm(state ~ goal + backers + pledged,
             data = kickstart_new)
 
 glance(m_full)
