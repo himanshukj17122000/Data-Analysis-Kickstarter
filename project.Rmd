@@ -445,6 +445,16 @@ glance(step_full)
 
 ```
 
+```{r prediction_accuracy}
+pred_log_odds <- augment(step_full, newdata = kickstart_test) %>% 
+  mutate(prob = exp(.fitted)/ (1+exp(.fitted))) %>%
+  mutate(class = ifelse(prob > .5, "successful", "failed")) %>%
+  na.omit() %>%
+  pull(class)
+
+# pred_log_odds
+mean(true_state == pred_log_odds)
+```
 
 
 
