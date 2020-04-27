@@ -422,7 +422,7 @@ $$\widehat{\mbox{state}} = -4121.634 -98315.777~\mbox{goal} +
 We believe that goal and the pledged amount are the two most important variables
 responsible for predicting the startups success. We started with a model that 
 had backers as one of the factors but from our backward eliminiation process
-we can conclude that only goal and pledged are the necessary variables. 
+we can conclude that only goal and pledged are the necessary variables.
 
 ```{r conf_int_coefficients}
 #tidy(step_full, conf.int = TRUE, conf.level = 0.95)
