@@ -352,14 +352,20 @@ true_state
 
 ```{r knn_best}
 set.seed(04272020)
+i=1
+k.optm=1
 values <- numeric(79) 
 for(i in 1:79) {
   trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
                     k = (2*i)-1, prob = FALSE, use.all = FALSE)
+  k.optm[i] <- 100 * sum(true_state == trains_knn)/NROW(kickstart_test)
+  k=i
+  cat(k,'=',k.optm[i],'')
   x <- mean(trains_knn == true_state)  
   values[i] <- x
 }
 tibble(values)
+plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
 which.max(values)
 ```
 
