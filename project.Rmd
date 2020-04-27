@@ -250,6 +250,9 @@ Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
 future if we ever want to start our own companies.
 
+
+
+
 ## K-NN 
 
 ```{r}
@@ -260,31 +263,46 @@ kickstart_new <- kickstart %>%
   mutate(state = factor(state))%>%
   na.omit()
 
+
 kickstart_new
 ```
+```{r}
+kickstart_1 <- kickstart_new %>%
+  group_by(state) %>%
+  sample_frac(0.1) %>%
+  ungroup()
+
+kickstart_1 %>%
+  count(state)
+```
+
+
+
+
 ```{r new_variables}
-kickstart_new <- kickstart_new%>%
+kickstart_mutated <- kickstart_new%>%
   mutate(
     goal = ((goal- mean(goal)) / sd(goal)),
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
     backers = ((backers - mean(backers)) / sd(backers))
   )
 ```
+
 ```{r set_seed}
 set.seed(03052020)
-indices <- sample(nrow(kickstart_new), 25)
+indices <- sample(nrow(kickstart_1), 2500)
 ```
 
 ```{r new_datasets}
-kickstart_train <- kickstart_new %>%
+kickstart_train <- kickstart_1 %>%
   slice(-indices) %>%
   select(goal, pledged,backers) 
 
-kickstart_test <- kickstart_new %>%
+kickstart_test <- kickstart_1 %>%
   slice(indices) %>%
   select(goal, pledged,backers)
   
-train_state <- kickstart_new %>%
+train_state <- kickstart_1 %>%
   slice(-indices) %>%
   pull(state)
 
@@ -293,33 +311,29 @@ kickstart_test
 train_state
 ```
 ```{r true_types}
-true_state <- kickstart_new %>%
+true_state <- kickstart_1 %>%
   slice(indices) %>%
   pull(state)
 
 true_state
 ```
 ```{r knn}
-train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 200, prob = F, use.all = F)
-train_knn 
+train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F, use.all = F)
+#train_knn 
 
 mean(train_knn == true_state)
 ```
 
 ```{r knn_best}
-values <- numeric(12) 
-for(i in 1:12) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
+values <- numeric(79) 
+for(i in 1:79) {
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, 
+                    prob = FALSE, use.all = FALSE)
   x <- mean(trains_knn == true_state)  
   values[i] <- x
 }
 tibble(values)
 which.max(values)
-```
-
-```{r visualize_distributions}
-ggplot(kickstart_new, mapping = aes(x = goal)) +
-  geom_histogram(binwidth = 10)
 ```
 
 
@@ -361,9 +375,6 @@ mode_country
 new_project <- tibble(goal = c(1000, 9627.803, 27000),
                       pledged = c(925, 21480.74, 24000),
                       backers = c(15, 253.86, 750))
-                      #main_category = c("Dance", "Film & Video", "Food"),
-                      #country = c("LU", "US", "GB"))
-
 
 train <- kickstart_new %>% 
   select(goal, pledged, backers)
@@ -422,6 +433,9 @@ m_full <- lm(state ~ goal + backers + pledged,
 
 glance(m_full)
 tidy(m_full)
+#use glm 
+#check lab 7! for fitting logistic model and comparing with knn
+#lecture with knn shows predictions possibly
 ```
 QUESTION:
 - why no r-squared if factored
@@ -433,6 +447,9 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
 glance(step_full)
 tidy(step_full)
 ```
+
+once fit full logistic model, can use step full
+then see which variables meaningful
 ```{r}
 backers_out <- kickstart_new %>%
   filter(backers <= 500) %>%
