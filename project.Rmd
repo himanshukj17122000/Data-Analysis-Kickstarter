@@ -331,11 +331,6 @@ true_state
 ```
 
 
-
-#true_state
-```
-
-
 ```{r knn_best}
 values <- numeric(157) 
 for(i in 1:79) {
@@ -458,9 +453,15 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
                   results = "hide")
 tidy(step_full)
 glance(step_full)
-tidy(m_riders, conf.int = TRUE, conf.level = 0.95)
+
 
 ```
+
+```{r}
+tidy(step_full, conf.int = TRUE, conf.level = 0.95)
+```
+
+
 
 ```{r prediction_accuracy}
 pred_log_odds <- augment(step_full, newdata = kickstart_test) %>% 
