@@ -447,7 +447,7 @@ glance(step_full)
 
 ```{r prediction_accuracy}
 pred_log_odds <- augment(step_full, newdata = kickstart_test) %>% 
-  mutate(prob = exp(.fitted)/ (1+exp(.fitted))) %>%
+  mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
   mutate(class = ifelse(prob > .5, "successful", "failed")) %>%
   na.omit() %>%
   pull(class)
@@ -469,11 +469,11 @@ m_pledged <- lm(pledged ~ backers, backers_out)
 
 tidy(m_pledged)
 glance(m_pledged)
+m_pledged_aug <- augment(m_pledged)
 ```
 
 ```{r}
-m_pledged_aug <- augment(m_pledged)
-ggplot(m_pledged_aug, mapping = aes(x = .fitted, y = .resid)) +
+ggplot(step_full, mapping = aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.5) +
   geom_hline(yintercept = 0, color = "blue", lty = 2) 
 ```
@@ -501,7 +501,7 @@ ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
 
 ```{r histogram}
 ggplot(data = full_model, aes(x = .resid)) +
-  geom_histogram() +
+  geom_histogram(binwidth = .5) +
   labs(title="Count vs Residuals", 
        subtitle="The histogram seems to be centered around 0",
        x = "Residuals", y = "Count") +
