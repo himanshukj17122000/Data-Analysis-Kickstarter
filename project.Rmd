@@ -469,7 +469,7 @@ pred_log_odds <- augment(step_full, newdata = kickstart_test) %>%
   na.omit() %>%
   pull(class)
 
-# pred_log_odds
+# pred_log_odds  
 mean(true_state == pred_log_odds)
 ```
 
