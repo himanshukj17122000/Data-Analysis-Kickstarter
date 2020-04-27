@@ -309,20 +309,6 @@ train_state
 true_state
 ```
 
-=======
-```{r knn}
-train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F
-                 , use.all = F)
-#train_knn 
-
-
-
-
-values <- numeric(12) 
-for(i in 1:12) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
-                    k = i, prob = FALSE, use.all = FALSE)
-```
 
 #true_state
 
