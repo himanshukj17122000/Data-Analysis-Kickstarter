@@ -262,18 +262,12 @@ kickstart_new <- kickstart %>%
   filter(state == "successful" | state == "failed") %>%
   mutate(state = factor(state))%>%
   na.omit()
-
-
-kickstart_new
 ```
 ```{r}
 kickstart_1 <- kickstart_new %>%
   group_by(state) %>%
   sample_frac(0.1) %>%
   ungroup()
-
-kickstart_1 %>%
-  count(state)
 ```
 
 
@@ -360,11 +354,11 @@ mode_country <- kickstart_new %>%
   count() %>%
   arrange(desc(n))
 
-mean_goal
-mean_pledged
-mean_backers
-mode_category
-mode_country
+#mean_goal
+#mean_pledged
+#mean_backers
+#mode_category
+#mode_country
 ```
 
 ```{r predicting_project_succes}
@@ -379,7 +373,7 @@ success_state <- kickstart_new %>%
   pull(state) 
 
 library(class)
-mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+mod_knn <- knn(train, new_project, success_state, k = 125, prob = F, use.all = T)
 mod_knn
 ```
 -pledged and goal have more significant effect on determining state than backers
@@ -456,20 +450,17 @@ pred_log_odds <- augment(step_full, newdata = kickstart_test) %>%
 mean(true_state == pred_log_odds)
 ```
 
-
-
 ```{r}
-backers_out <- kickstart_new %>%
-  filter(backers <= 500) %>%
-  filter(pledged <= 25000)
+#backers_out <- kickstart_new %>%
+#  filter(backers <= 500) %>%
+#  filter(pledged <= 25000)
 ```
 
 ```{r}
-m_pledged <- lm(pledged ~ backers, backers_out)
-
-tidy(m_pledged)
-glance(m_pledged)
-m_pledged_aug <- augment(m_pledged)
+#m_pledged <- lm(pledged ~ backers, backers_out)
+#tidy(m_pledged)
+#glance(m_pledged)
+#m_pledged_aug <- augment(m_pledged)
 ```
 
 ```{r}
@@ -485,7 +476,7 @@ full_model <- augment(step_full)
 ggplot(data = full_model, aes(x = 1:nrow(full_model), y = .resid)) +
 geom_point() +
 labs(x = "Index", y = "Residual", title="Residuals vs Index",
-     subtitle = "Both the variables seems independent")+
+     subtitle = "Both the variables seems independent") +
   theme_minimal(base_size = 16)
 ```
 
