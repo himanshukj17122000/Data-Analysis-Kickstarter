@@ -368,7 +368,7 @@ which.max(values)
 ```{r using_variables_in_knn}
 kickstart_train_log <- kickstart_mutated %>%
   slice(-indices) %>%
-  select(goal, pledged,backers, state) 
+  select(goal, pledged, backers, state) 
 
 m_full <- glm(state ~ goal + backers + pledged,
             data = kickstart_train_log, family = "binomial")
@@ -442,29 +442,58 @@ mean_pledged
 mean_backers
 ```
 
+we need to decide specific values for our potential projects and explain 
+why we chose these values
+
 ```{r predicting_project_succes}
 new_project <- tibble(goal = c(1000, 9627.803, 27000),
-                      pledged = c(925, 21480.74, 24000),
-                      backers = c(15, 253.86, 750))
+                      backers = c(15, 253.86, 750),
+                      pledged = c(925, 21480.74, 24000))
 
-train <- kickstart_new %>% 
-  select(goal, pledged, backers)
+pred_project <- augment(m_full, newdata = new_project) %>% 
+  pull(.fitted) 
 
-success_state <- kickstart_new %>% 
-  pull(state) 
+pred_probs <- exp(pred_project) / (1 + exp(pred_project))
+pred_probs
 
-library(class)
-mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
-mod_knn
+#train <- kickstart_new %>% 
+  #select(goal, pledged, backers)
+
+#success_state <- kickstart_new %>% 
+  #pull(state) 
+
+#library(class)
+#mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+#mod_knn
+
 ```
--pledged and goal have more significant effect on determining state than backers
--but backers do effect state (first example, even if pledged below goal)
+why is it all 0?
+we tried using glm model to predict since it was 0.88% more accurate,
+but it doesn't do what we need it too. Values are all 0.
+How do we fix this?
 
-## TRY
+## ANALYSIS
 
-```{r}
-summary(kickstart_1) 
-```
+-discuss outliers and need to shrink data
+-discuss k-nn test and 99% accuracy result
+-discuss logistic regression model result and how backers and main_category
+  are not significant predictors
+-compare knn and glm accuracy (99 vs 99.88)
+-used glm because more accurate to predict potential project success
+-explain why we chose the values of new project 
+  - explain results of that and how we could use these to our benefit in the
+    future 
+-discuss what we could do differently
+    - data set huge
+    - usd_pledged
+    - etc.
+    
+    
+THINGS TO GO BACK OVER:
+-organize cleaning data code 
+-do we need to use outlier set for everything or can they be considered
+-knitting
+-VISUALIZATIONS???
 
 
 
