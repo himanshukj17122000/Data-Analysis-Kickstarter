@@ -306,36 +306,32 @@ train_state <- kickstart_1 %>%
   slice(-indices) %>%
   pull(state)
 
-kickstart_train
-kickstart_test
-train_state
+#kickstart_train
+#kickstart_test
+#train_state
 ```
+
 ```{r true_types}
 true_state <- kickstart_1 %>%
   slice(indices) %>%
   pull(state)
 
-true_state
+#true_state
 ```
-```{r knn}
-train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F, use.all = F)
-#train_knn 
 
-mean(train_knn == true_state)
-```
 
 ```{r knn_best}
-values <- numeric(79) 
+values <- numeric(157) 
 for(i in 1:79) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, 
-                    prob = FALSE, use.all = FALSE)
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
+                    k = (2*i)-1, prob = FALSE, use.all = FALSE)
   x <- mean(trains_knn == true_state)  
-  values[i] <- x
+  values[(2*i)-1] <- x
 }
 tibble(values)
 which.max(values)
 ```
-
+k = 1?
 
 ```{r create_values}
 mean_goal <- kickstart_new %>%
@@ -428,28 +424,30 @@ Using these calculations, we are 95% confident that the true successful startup'
 ## Linear Model 
 
 ```{r all the variables}
-m_full <- lm(state ~ goal + backers + pledged,
-            data = kickstart_new)
+m_full <- glm(state ~ goal + backers + pledged + main_category + country,
+            data = kickstart_1, family = "binomial")
 
-glance(m_full)
 tidy(m_full)
-#use glm 
+glance(m_full)
+
+
 #check lab 7! for fitting logistic model and comparing with knn
 #lecture with knn shows predictions possibly
 ```
-QUESTION:
-- why no r-squared if factored
--response variable --> can it be categorical?
+p-value for country is around 0.9 so very large so we expect it to not be
+in the backward 
 
 ```{r full model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
                   results = "hide")
-glance(step_full)
 tidy(step_full)
+glance(step_full)
+
 ```
 
-once fit full logistic model, can use step full
-then see which variables meaningful
+
+
+
 ```{r}
 backers_out <- kickstart_new %>%
   filter(backers <= 500) %>%
