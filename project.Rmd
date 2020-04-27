@@ -292,15 +292,17 @@ train_state <- kickstart_1 %>%
   slice(-indices) %>%
   pull(state)
 
-kickstart_train
-kickstart_test
-train_state
+#kickstart_train
+#kickstart_test
+#train_state
 ```
+
 ```{r true_types}
 true_state <- kickstart_1 %>%
   slice(indices) %>%
   pull(state)
 
+<<<<<<< HEAD
 kickstart_train
 kickstart_test
 train_state
@@ -319,19 +321,24 @@ values <- numeric(12)
 for(i in 1:12) {
   trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
 ```
+=======
+#true_state
+```
+
+>>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
 
 ```{r knn_best}
-values <- numeric(79) 
+values <- numeric(157) 
 for(i in 1:79) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, 
-                    prob = FALSE, use.all = FALSE)
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
+                    k = (2*i)-1, prob = FALSE, use.all = FALSE)
   x <- mean(trains_knn == true_state)  
-  values[i] <- x
+  values[(2*i)-1] <- x
 }
 tibble(values)
 which.max(values)
 ```
-
+k = 1?
 
 ```{r create_values}
 mean_goal <- kickstart_new %>%
@@ -419,29 +426,52 @@ kickstart_new %>%
 ## Linear Model 
 
 ```{r all the variables}
+<<<<<<< HEAD
 
 m_full <- lm(state ~ main_category + goal + backers + usd_pledged + country
             , data = kickstart_new)
 m_full <- lm(state ~ goal + backers + pledged,
             data = kickstart_new)
+=======
+m_full <- glm(state ~ goal + backers + pledged + main_category + country,
+            data = kickstart_1, family = "binomial")
+>>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
 
-glance(m_full)
 tidy(m_full)
-#use glm 
+glance(m_full)
+
+
 #check lab 7! for fitting logistic model and comparing with knn
 #lecture with knn shows predictions possibly
 ```
+<<<<<<< HEAD
 
+=======
+p-value for country is around 0.9 so very large so we expect it to not be
+in the backward 
+>>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
 
 ```{r full model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
                   results = "hide")
-glance(step_full)
 tidy(step_full)
+glance(step_full)
+
 ```
 
-once fit full logistic model, can use step full
-then see which variables meaningful
+```{r prediction_accuracy}
+pred_log_odds <- augment(step_full, newdata = kickstart_test) %>% 
+  mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
+  mutate(class = ifelse(prob > .5, "successful", "failed")) %>%
+  na.omit() %>%
+  pull(class)
+
+# pred_log_odds
+mean(true_state == pred_log_odds)
+```
+
+
+
 ```{r}
 backers_out <- kickstart_new %>%
   filter(backers <= 500) %>%
@@ -453,11 +483,11 @@ m_pledged <- lm(pledged ~ backers, backers_out)
 
 tidy(m_pledged)
 glance(m_pledged)
+m_pledged_aug <- augment(m_pledged)
 ```
 
 ```{r}
-m_pledged_aug <- augment(m_pledged)
-ggplot(m_pledged_aug, mapping = aes(x = .fitted, y = .resid)) +
+ggplot(step_full, mapping = aes(x = .fitted, y = .resid)) +
   geom_point(alpha = 0.5) +
   geom_hline(yintercept = 0, color = "blue", lty = 2) 
 ```
@@ -485,7 +515,7 @@ ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
 
 ```{r histogram}
 ggplot(data = full_model, aes(x = .resid)) +
-  geom_histogram() +
+  geom_histogram(binwidth = .5) +
   labs(title="Count vs Residuals", 
        subtitle="The histogram seems to be centered around 0",
        x = "Residuals", y = "Count") +
