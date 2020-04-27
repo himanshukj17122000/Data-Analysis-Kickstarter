@@ -407,6 +407,8 @@ m_full <- glm(state ~ goal + backers + pledged,
 
 tidy(m_full)
 ```
+$$\widehat{\mbox{state}} = (intercept) + (goal_num)~\mbox{goal} + (backers_num)~\mbox{backers} + (pledged_num)~\mbox{pledged}$$
+
 
 ```{r full_model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
@@ -414,6 +416,13 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
 
 tidy(step_full)
 ```
+$$\widehat{\mbox{state}} = -4121.634 -98315.777~\mbox{goal} + 
+17313.216~\mbox{pledged}$$
+
+We believe that goal and the pledged amount are the two most important variables
+responsible for predicting the startups success. We started with a model that 
+had backers as one of the factors but from our backward eliminiation process
+we can conclude that only goal and pledged are the necessary variables. 
 
 ```{r conf_int_coefficients}
 #tidy(step_full, conf.int = TRUE, conf.level = 0.95)
@@ -436,9 +445,11 @@ pred_log_odds <- augment(m_full, newdata = kickstart_test) %>%
 mean(true_state == pred_log_odds)
 ```
 discuss how compares to knn test
+We can see that the accuracy for a regression model is 99.88%, which is much 
+more than the accuracy we got from our KNN model. The KNN model had the 
+highest accuracy at 99%. 
 
-
-Does category change anything?
+## Does category change anything?
 
 ```{r main_category_model}
 m_main <- glm(state ~ goal + backers + pledged + main_category,
@@ -447,8 +458,11 @@ m_main <- glm(state ~ goal + backers + pledged + main_category,
 tidy(m_main)
 glance(m_main)
 ```
-Not significant so no.
-
+We included the categorical variable main category to check if it has any 
+influence over the state of the startup. From the table above we can see that 
+the value changed as the category changes with dance on average  increasing the
+state of success by 11.99. Other than that, other categories don't have a big 
+influence on the outcome of the startup.
 
 ## Predict Potential Project Success
 
