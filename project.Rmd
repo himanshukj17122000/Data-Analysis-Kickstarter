@@ -400,7 +400,7 @@ mod_knn
 ## Confidence Intervals
 
 ```{r}
-kickstart_new %>%
+kickstart_1 %>%
   filter(state == "successful") %>% 
   specify(response = pledged) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
@@ -411,7 +411,7 @@ kickstart_new %>%
 Using these calculations, we are 95% confident that the true successful startup's amount pledged by the backers will be in the (0.1187411, 0.1398106) interval. 
 
 ```{r}
-kickstart_new %>%
+kickstart_1 %>%
   filter(state == "successful") %>% 
   specify(response = backers) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
@@ -422,7 +422,7 @@ kickstart_new %>%
 Using these calculations, we are 95% confident that the true successful startup's number of backers will be in the (0.133755, 0.1494601) interval. 
 
 ```{r}
-kickstart_new %>%
+kickstart_1 %>%
   filter(state == "successful") %>% 
   specify(response = goal) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
