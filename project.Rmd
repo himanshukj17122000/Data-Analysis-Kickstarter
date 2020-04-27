@@ -67,62 +67,45 @@ kickstart%>%
   group_by(state)%>%
   filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
            state=='suspended'|state=='undefined')%>%
-  count(state)%>%
-  ungroup()%>%
-  mutate(rate = n/sum(n))%>%
-  arrange(n)
+  count()
 ```
 From this table, we see that most of the companies have a state of either failed
 or successful. Thus when we are analyzing our data, we will filter it to only 
 include these companies. We are interested in what makes a project successful
 versus unsuccessful, so any entry with a different state will be irrelevant to 
-our analysis. We can also see that most of the companies failed so it is really
-important to understand the problems in order to launch a successful campaign. 
-Hence, we believe that this analysis would be helpful for future entrepreneurs.
+our analysis.
 
 ```{r category_wise}
 kickstart%>%
   group_by(category)%>%
   count()%>%
-  filter(n > 100)%>%
-  arrange(desc(n))
+  filter(n > 100)
 ```
 ```{r main_categories}
 kickstart%>%
   group_by(main_category)%>%
   count()%>%
-  filter(n > 100)%>%
-  arrange(desc(n))%>%
-  ungroup()%>%
-  mutate(share_of_projects = n/sum(n))
+  filter(n > 100)
 ```
 Looking at the numbers in the categories and main categories, we can get a
 better idea at what kind of projects are more successful than others. Knowing
 this will help us narrow down what the crowd is interested in investing in, and 
 what fields people are more likely to succeed in if they were to create their
-own project. We can see that Film and Video is the most common category and 
-Product Design is the most common sub-category. We also chose to take only 
-those columns that had more than 100 campaigns since the data is not clean 
-and there are a lot of values that would not be allow us to present desired 
-results.
+own project. 
 
 The variable `pledged` tells the amount of money pledged by the crowd, or users
 of the site. 
 
-```{r pledged_needed, fig.width=9, fig.height=5}
+```{r pledged_needed}
 pledged_needed <- kickstart %>%
   group_by(state) %>%
   filter(state=='failed'|state=='successful') %>%
   summarise(mean = mean(pledged), 
             min = min(pledged),
-            max = max(pledged),
-            goal_mean = mean(goal)) %>%
+            max = max(pledged)) %>%
   mutate(range = max - min)
 
 pledged_needed
-
-kickstart_states<-kickstart%>%
-  filter(state=='failed'|state=='successful')
 
 ggplot(data = pledged_needed, mapping = aes(x = state, y = mean, 
                                             fill = state)) +
@@ -130,12 +113,6 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
   theme_bw() +
   labs(title = "Successful Projects Generally Receive More Pledged Money",
        x = "State", y = "Pledged ($)", fill = "State")
-
-ggplot(data = kickstart_states,mapping = aes(y = pledged, x = goal, 
-                                           color = factor(state))) +
-  geom_point(alpha = 0.3) +
-  labs(color = "Goal of the Project", y = "Pledged Money") +
-  theme_bw(base_size = 16)
 ```
 This table shows that there is a large gap between the amount of money 
 pledged to projects that failed as opposed to those that were successful. The
@@ -143,13 +120,9 @@ average amount of money pledged to successful projects is more than ten
 times greater than that pledged to failed projects. We can also see this in the 
 bar plot above, as the bar for successful projects is significantly higher than 
 the bar for failed. In addition, the range of money pledged to successful 
-projects is significantly greater than the range of failed projects. We can also
-see that the failed projects required much more money than the successful 
-projects and even then they didn't receive much money. We believe that the 
-large amount of money required makes people not pledge money for that project 
-and hence, we believe that we should be having a realistic goal for the project
-to be successful on kickstarter. These statistics suggest that the variable 
-`pledged`has an effect on determining the state of a project.
+projects is significantly greater than the range of failed projects. 
+These statistics suggest that the variable `pledged`has an effect on determining
+the state of a project.
 
 Another variable we are interested in is `goal`. `Goal`gives the amount of money
 needed by a creator to fund and finish their project. 
@@ -250,63 +223,45 @@ Using these methods, we will hopefully be able to determine why certain projects
 are successful while others are not and use this information to help us in the
 future if we ever want to start our own companies.
 
-## K-NN 
+
 
 ```{r}
 kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
-  rename(usd_pledged = 'usd pledged') %>%
-  filter(state == "successful" | state == "failed") %>%
-  mutate(state = factor(state))%>%
+  rename(usd_pledged = `usd pledged`) %>%
   na.omit()
 
 kickstart_new
 ```
-```{r new_variables}
-kickstart_new <- kickstart_new%>%
-  mutate(
-    goal = ((goal- mean(goal)) / sd(goal)),
-    pledged = ((pledged - mean(pledged)) / sd(pledged)),
-    backers = ((backers - mean(backers)) / sd(backers))
-  )
-```
-```{r set_seed}
+```{r}
 set.seed(03052020)
 indices <- sample(nrow(kickstart_new), 25)
 ```
 
-```{r new_datasets}
+```{r}
 kickstart_train <- kickstart_new %>%
-  slice(-indices) %>%
-  select(goal, pledged,backers) 
+  slice(-indices) %>% 
+  select(category, main_category, goal, backers, usd_pledged)
 
 kickstart_test <- kickstart_new %>%
   slice(indices) %>%
-  select(goal, pledged,backers)
-  
+  select(category, main_category, goal, backers, usd_pledged)
+
 train_state <- kickstart_new %>%
   slice(-indices) %>%
+  pull(state)
+
+true_state <- kickstart_new %>%
+  slice(indices) %>%
   pull(state)
 
 kickstart_train
 kickstart_test
 train_state
-```
-```{r true_types}
-true_state <- kickstart_new %>%
-  slice(indices) %>%
-  pull(state)
-
 true_state
 ```
-```{r knn}
-train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 200, prob = F, use.all = F)
-train_knn 
 
-mean(train_knn == true_state)
-```
 
-```{r knn_best}
 values <- numeric(12) 
 for(i in 1:12) {
   trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
@@ -315,117 +270,43 @@ for(i in 1:12) {
 }
 tibble(values)
 which.max(values)
-```
-
-```{r visualize_distributions}
-ggplot(kickstart_new, mapping = aes(x = goal)) +
-  geom_histogram(binwidth = 10)
-```
-
-
-```{r create_values}
-mean_goal <- kickstart_new %>%
-  group_by(state) %>%
-  filter(state=='successful') %>%
-  summarise(mean_goal = mean(goal))
-
-mean_pledged <- kickstart_new %>%
-  group_by(state) %>%
-  filter(state=='successful') %>%
-  summarise(mean_pledged = mean(pledged))
-
-mean_backers <- kickstart_new %>%
-  group_by(state) %>%
-  filter(state=='successful') %>%
-  summarise(mean_backers = mean(backers))
-
-mode_category <- kickstart_new %>%
-  group_by(main_category) %>%
-  count()%>%
-  arrange(desc(n))
-  
-
-mode_country <- kickstart_new %>%
-  group_by(country) %>%
-  count() %>%
-  arrange(desc(n))
-
-mean_goal
-mean_pledged
-mean_backers
-mode_category
-mode_country
-```
-
-```{r predicting_project_succes}
-new_project <- tibble(goal = c(1000, 9627.803, 27000),
-                      pledged = c(925, 21480.74, 24000),
-                      backers = c(15, 253.86, 750))
-                      #main_category = c("Dance", "Film & Video", "Food"),
-                      #country = c("LU", "US", "GB"))
-
-
-train <- kickstart_new %>% 
-  select(goal, pledged, backers)
-
-success_state <- kickstart_new %>% 
-  pull(state) 
-
-library(class)
-mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
-mod_knn
-```
--pledged and goal have more significant effect on determining state than backers
--but backers do effect state (first example, even if pledged below goal)
-
 
 ## Confidence Intervals
 
 ```{r}
 kickstart_new %>%
-  filter(state == "successful") %>% 
-  specify(response = pledged) %>% 
+   filter(state == "successful") %>% 
+  specify(response = usd_pledged) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
 
-Using these calculations, we are 95% confident that the true successful startup's amount pledged by the backers will be in the (0.1187411, 0.1398106) interval. 
-
 ```{r}
 kickstart_new %>%
-  filter(state == "successful") %>% 
+   filter(state == "successful") %>% 
   specify(response = backers) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
 
-Using these calculations, we are 95% confident that the true successful startup's number of backers will be in the (0.133755, 0.1494601) interval. 
-
 ```{r}
 kickstart_new %>%
-  filter(state == "successful") %>% 
+   filter(state == "successful") %>% 
   specify(response = goal) %>% 
   generate(reps = 100, type = "bootstrap") %>% 
   calculate(stat = "mean") %>%
   get_ci(level = .95)
 ```
 
-Using these calculations, we are 95% confident that the true successful startup's requested amount will be in the (-0.03102419, -0.03071722) interval. 	
-
 ## Linear Model 
 
 ```{r all the variables}
-m_full <- lm(state ~ goal + backers + pledged,
-            data = kickstart_new)
-
-glance(m_full)
-tidy(m_full)
+m_full <- lm(state ~ main_category + goal + backers + usd_pledged + country
+            , data = kickstart_new)
 ```
-QUESTION:
-- why no r-squared if factored
--response variable --> can it be categorical?
+
 
 ```{r full model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
@@ -433,54 +314,3 @@ step_full <- step(m_full, direction = "backward", trace = FALSE,
 glance(step_full)
 tidy(step_full)
 ```
-```{r}
-backers_out <- kickstart_new %>%
-  filter(backers <= 500) %>%
-  filter(pledged <= 25000)
-```
-
-```{r}
-m_pledged <- lm(pledged ~ backers, backers_out)
-
-tidy(m_pledged)
-glance(m_pledged)
-```
-
-```{r}
-m_pledged_aug <- augment(m_pledged)
-ggplot(m_pledged_aug, mapping = aes(x = .fitted, y = .resid)) +
-  geom_point(alpha = 0.5) +
-  geom_hline(yintercept = 0, color = "blue", lty = 2) 
-```
-
-## Check Independence
-
-```{r conditions_check_independence}
-full_model <- augment(step_full)
-ggplot(data = full_model, aes(x = 1:nrow(full_model), y = .resid)) +
-geom_point() +
-labs(x = "Index", y = "Residual", title="Residuals vs Index",
-     subtitle = "Both the variables seems independent")+
-  theme_minimal(base_size = 16)
-```
-
-```{r residual_variance}
-ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
-  geom_point() +
-  geom_hline(yintercept = 0, lty = 3, color = "gray") +
-  labs(title="Residuals vs the fitted value", y = "Residuals", 
-       x = expression(hat(y)), 
-       subtitle="We can see constant variance and distrbution to be around 0") +
-  theme_minimal(base_size = 16)
-```
-
-```{r histogram}
-ggplot(data = full_model, aes(x = .resid)) +
-  geom_histogram() +
-  labs(title="Count vs Residuals", 
-       subtitle="The histogram seems to be centered around 0",
-       x = "Residuals", y = "Count") +
-  theme_minimal(base_size = 16)
-```
-
-
