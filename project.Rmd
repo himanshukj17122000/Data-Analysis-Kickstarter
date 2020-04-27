@@ -270,6 +270,13 @@ kickstart_new <- kickstart %>%
 
 kickstart_new
 ```
+We filtered out the data since we want to concentrate on the startups that 
+either failed or were successful. There are many other states but some of them
+have garbage values so we filtered the dataset. We are also looking at US 
+specific startups since other countries have different startup ecosystem and 
+just looking at this dataset and making conclusions for them would give us 
+inaccurate results. We are basically using this to make sure that all the 
+observations used have things in common.
 
 
 ```{r shrink_data}
@@ -282,6 +289,8 @@ kickstart_1 <- kickstart_new %>%
 
 kickstart_1
 ```
+Since our dataset had too many observations, we decided to stick to using a 
+smaller fraction of it in order to not break our program. 
 
 
 ```{r remove_outliers}
@@ -292,6 +301,8 @@ kickstart_out <- kickstart_1 %>%
   
 kickstart_out
 ```
+The outliers were observed and removed to make the dataset more generic and 
+to get better results. Outliers would have an effect on our results. 
 
 ```{r visualizations_minus_outliers}
 ggplot(kickstart_out, mapping = aes(x = pledged)) +
@@ -309,6 +320,12 @@ ggplot(kickstart_out, mapping = aes(x = backers)) +
   theme_bw() +
   labs(x = "Backers", y = "Count")
 ```
+The graphs clearly shows that big projects are hardly launched on kickstarter. 
+It also shows that the pledged amount is not much and the number of backers 
+for each project is also above 100 only for some projects. We can assume that 
+smaller projects would have a higher chance of being successful on this platform
+rather than the bigger ones that have a bigger goal and require more money and
+backers.
 
 
 ```{r new_variables}
@@ -317,6 +334,10 @@ kickstart_mutated <- kickstart_1 %>%
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
     backers = ((backers - mean(backers)) / sd(backers)))
 ```
+We standardised the variables to improve the accuracy of our KNN models. KNN 
+is a distance based algorithm which is affected by the scale of the variables. 
+Hence, we need to make sure that each feature has 0 mean and 1 standard 
+deviation. 
 
 ## K-NN
 
@@ -341,6 +362,9 @@ true_state <- kickstart_mutated %>%
   slice(indices) %>%
   pull(state)
 ```
+
+We make the vectors required for training and testing the model. The model is 
+tested on 2500 observations that we get from the dataset. 
 
 ```{r view_knn_data}
 kickstart_train
@@ -368,6 +392,8 @@ tibble(values)
 plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
 which.max(values)
 ```
+We get the highest accuracy when the value of K is 2. The accuracy is 
+99% for a model like that. We can also see this from the graph. 
 
 ## Logistic Regression Model 
 
