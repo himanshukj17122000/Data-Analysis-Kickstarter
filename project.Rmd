@@ -256,10 +256,15 @@ future if we ever want to start our own companies.
 ## K-NN 
 
 ```{r}
+set.seed(04232020)
+```
+
+
+```{r}
 kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
   rename(usd_pledged = 'usd pledged') %>%
-  filter(state == "successful" | state == "failed") %>%
+  filter(state == "successful" | state == "failed", country == "US") %>%
   mutate(state = factor(state))%>%
   na.omit()
 
@@ -270,6 +275,8 @@ kickstart_new
 kickstart_1 <- kickstart_new %>%
   group_by(state) %>%
   sample_frac(0.1) %>%
+  filter(backers <= 500) %>%
+  filter(pledged <= 25000) %>%
   ungroup()
 
 kickstart_1 %>%
@@ -288,8 +295,7 @@ kickstart_mutated <- kickstart_new%>%
   )
 ```
 
-```{r set_seed}
-set.seed(03052020)
+```{r indices}
 indices <- sample(nrow(kickstart_1), 2500)
 ```
 
@@ -331,7 +337,7 @@ for(i in 1:79) {
 tibble(values)
 which.max(values)
 ```
-k = 1?
+k = 1
 
 ```{r create_values}
 mean_goal <- kickstart_new %>%
@@ -424,7 +430,7 @@ Using these calculations, we are 95% confident that the true successful startup'
 ## Linear Model 
 
 ```{r all the variables}
-m_full <- glm(state ~ goal + backers + pledged + main_category + country,
+m_full <- glm(state ~ goal + backers + pledged + main_category,
             data = kickstart_1, family = "binomial")
 
 tidy(m_full)
