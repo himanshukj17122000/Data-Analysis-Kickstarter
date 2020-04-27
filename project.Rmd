@@ -253,14 +253,14 @@ future if we ever want to start our own companies.
 
 
 
-## K-NN 
+## Clean Data 
 
-```{r}
+```{r set_seed1}
 set.seed(04232020)
 ```
 
 
-```{r}
+```{r clean_data}
 kickstart_new <- kickstart %>%
   select(-(X14:X17)) %>%
   rename(usd_pledged = 'usd pledged') %>%
@@ -268,10 +268,11 @@ kickstart_new <- kickstart %>%
   mutate(state = factor(state))%>%
   na.omit()
 
-
 kickstart_new
 ```
-```{r}
+
+
+```{r shrink_data}
 kickstart_1 <- kickstart_new %>%
   group_by(state) %>%
   sample_frac(0.1) %>%
@@ -279,51 +280,69 @@ kickstart_1 <- kickstart_new %>%
   #filter(pledged <= 25000) %>%
   ungroup()
 
-kickstart_1 %>%
-  count(state)
+kickstart_1
 ```
 
 
+```{r remove_outliers}
+kickstart_out <- kickstart_1 %>%
+  filter(pledged <= 11933.5) %>%
+  filter(goal <= 34500) %>%
+  filter(backers <= 154.4)
+  
+kickstart_out
+```
+
+```{r visualizations_minus_outliers}
+ggplot(kickstart_out, mapping = aes(x = pledged)) +
+  geom_histogram(alpha = .5, color = "darkgreen") +
+  theme_bw() +
+  labs(x = "Pledged", y = "Count")
+
+ggplot(kickstart_out, mapping = aes(x = goal)) +
+  geom_histogram(alpha = .5, color = "darkgreen") +
+  theme_bw() +
+  labs(x = "Goal", y = "Count")
+
+ggplot(kickstart_out, mapping = aes(x = backers)) +
+  geom_histogram(alpha = .5, color = "darkgreen") +
+  theme_bw() +
+  labs(x = "Backers", y = "Count")
+```
 
 
 ```{r new_variables}
-kickstart_mutated <- kickstart_new%>%
-  mutate(
-    goal = ((goal- mean(goal)) / sd(goal)),
+kickstart_mutated <- kickstart_1 %>%
+  mutate(goal = ((goal- mean(goal)) / sd(goal)),
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
-    backers = ((backers - mean(backers)) / sd(backers))
-  )
+    backers = ((backers - mean(backers)) / sd(backers)))
 ```
+
+## K-NN
 
 ```{r indices}
 indices <- sample(nrow(kickstart_1), 2500)
 ```
 
-```{r new_datasets}
-kickstart_train <- kickstart_1 %>%
+```{r new_datasets_knn}
+kickstart_train <- kickstart_mutated %>%
   slice(-indices) %>%
   select(goal, pledged,backers) 
 
-kickstart_test <- kickstart_1 %>%
+kickstart_test <- kickstart_mutated %>%
   slice(indices) %>%
   select(goal, pledged,backers)
   
-train_state <- kickstart_1 %>%
+train_state <- kickstart_mutated %>%
   slice(-indices) %>%
   pull(state)
 
-#kickstart_train
-#kickstart_test
-#train_state
-```
-
-```{r true_types}
-true_state <- kickstart_1 %>%
+true_state <- kickstart_mutated %>%
   slice(indices) %>%
   pull(state)
+```
 
-
-
+```{r view_knn_data}
 kickstart_train
 kickstart_test
 train_state
@@ -332,50 +351,128 @@ true_state
 
 
 ```{r knn_best}
-values <- numeric(157) 
+set.seed(04272020)
+values <- numeric(79) 
 for(i in 1:79) {
   trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
                     k = (2*i)-1, prob = FALSE, use.all = FALSE)
   x <- mean(trains_knn == true_state)  
-  values[(2*i)-1] <- x
+  values[i] <- x
 }
 tibble(values)
 which.max(values)
 ```
-k = 1
+
+
+## Confidence Intervals
+
+```{r conf_int_pledged}
+kickstart_1 %>%
+  filter(state == "successful") %>% 
+  specify(response = pledged) %>% 
+  generate(reps = 100, type = "bootstrap") %>% 
+  calculate(stat = "mean") %>%
+  get_ci(level = .95)
+```
+
+Using these calculations, we are 95% confident that the true successful startup's amount pledged by the backers will be in the (0.1187411, 0.1398106) interval. 
+
+```{r conf_int_backers}
+kickstart_1 %>%
+  filter(state == "successful") %>% 
+  specify(response = backers) %>% 
+  generate(reps = 100, type = "bootstrap") %>% 
+  calculate(stat = "mean") %>%
+  get_ci(level = .95)
+```
+
+Using these calculations, we are 95% confident that the true successful startup's number of backers will be in the (0.133755, 0.1494601) interval. 
+
+```{r conf_int_goal}
+kickstart_1 %>%
+  filter(state == "successful") %>% 
+  specify(response = goal) %>% 
+  generate(reps = 100, type = "bootstrap") %>% 
+  calculate(stat = "mean") %>%
+  get_ci(level = .95)
+```
+
+Using these calculations, we are 95% confident that the true successful startup's requested amount will be in the (-0.03102419, -0.03071722) interval.
+
+
+## Logistic Regression Model 
+
+```{r using_variables_in_knn}
+kickstart_train_log <- kickstart_mutated %>%
+  slice(-indices) %>%
+  select(goal, pledged,backers, state) 
+
+m_full <- glm(state ~ goal + backers + pledged,
+            data = kickstart_train_log, family = "binomial")
+
+tidy(m_full)
+```
+
+```{r full_model}
+step_full <- step(m_full, direction = "backward", trace = FALSE, 
+                  results = "hide")
+
+tidy(step_full)
+```
+
+```{r conf_int_coefficients}
+#tidy(step_full, conf.int = TRUE, conf.level = 0.95)
+confint(step_full)
+```
+talk about p-values 
+
+
+```{r prediction_accuracy}
+pred_log_odds <- augment(m_full, newdata = kickstart_test) %>% 
+  mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
+  mutate(prob = ifelse(is.nan(prob), 1, prob)) %>%
+  mutate(class = ifelse(prob >= .5, "successful", "failed")) %>%
+  pull(class)
+
+mean(true_state == pred_log_odds)
+```
+discuss how compares to knn test
+
+
+Does category change anything?
+
+```{r main_category_model}
+m_main <- glm(state ~ goal + backers + pledged + main_category,
+            data = kickstart_1, family = "binomial")
+
+tidy(m_main)
+glance(m_main)
+```
+Not significant so no.
+
+
+## Predict Potential Project Success
 
 ```{r create_values}
-mean_goal <- kickstart_new %>%
+mean_goal <- kickstart_1 %>%
   group_by(state) %>%
   filter(state=='successful') %>%
   summarise(mean_goal = mean(goal))
 
-mean_pledged <- kickstart_new %>%
+mean_pledged <- kickstart_1 %>%
   group_by(state) %>%
   filter(state=='successful') %>%
   summarise(mean_pledged = mean(pledged))
 
-mean_backers <- kickstart_new %>%
+mean_backers <- kickstart_1 %>%
   group_by(state) %>%
   filter(state=='successful') %>%
   summarise(mean_backers = mean(backers))
 
-mode_category <- kickstart_new %>%
-  group_by(main_category) %>%
-  count()%>%
-  arrange(desc(n))
-  
-
-mode_country <- kickstart_new %>%
-  group_by(country) %>%
-  count() %>%
-  arrange(desc(n))
 
 mean_goal
 mean_pledged
 mean_backers
-mode_category
-mode_country
 ```
 
 ```{r predicting_project_succes}
@@ -396,130 +493,11 @@ mod_knn
 -pledged and goal have more significant effect on determining state than backers
 -but backers do effect state (first example, even if pledged below goal)
 
-
-## Confidence Intervals
-
-```{r}
-kickstart_1 %>%
-  filter(state == "successful") %>% 
-  specify(response = pledged) %>% 
-  generate(reps = 100, type = "bootstrap") %>% 
-  calculate(stat = "mean") %>%
-  get_ci(level = .95)
-```
-
-Using these calculations, we are 95% confident that the true successful startup's amount pledged by the backers will be in the (0.1187411, 0.1398106) interval. 
+## TRY
 
 ```{r}
-kickstart_1 %>%
-  filter(state == "successful") %>% 
-  specify(response = backers) %>% 
-  generate(reps = 100, type = "bootstrap") %>% 
-  calculate(stat = "mean") %>%
-  get_ci(level = .95)
-```
-
-Using these calculations, we are 95% confident that the true successful startup's number of backers will be in the (0.133755, 0.1494601) interval. 
-
-```{r}
-kickstart_1 %>%
-  filter(state == "successful") %>% 
-  specify(response = goal) %>% 
-  generate(reps = 100, type = "bootstrap") %>% 
-  calculate(stat = "mean") %>%
-  get_ci(level = .95)
-```
-
-Using these calculations, we are 95% confident that the true successful startup's requested amount will be in the (-0.03102419, -0.03071722) interval.
-
-## Linear Model 
-
-```{r all the variables}
-m_full <- glm(state ~ goal + backers + pledged + main_category,
-            data = kickstart_1, family = "binomial")
-
-tidy(m_full)
-glance(m_full)
-
-
-#check lab 7! for fitting logistic model and comparing with knn
-#lecture with knn shows predictions possibly
-```
-p-value for country is around 0.9 so very large so we expect it to not be
-in the backward 
-
-```{r full model}
-step_full <- step(m_full, direction = "backward", trace = FALSE, 
-                  results = "hide")
-tidy(step_full)
-glance(step_full)
-
-
-```
-
-```{r}
-tidy(step_full, conf.int = TRUE, conf.level = 0.95)
+summary(kickstart_1) 
 ```
 
 
-
-```{r prediction_accuracy}
-pred_log_odds <- augment(step_full, newdata = kickstart_test) %>% 
-  mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
-  mutate(class = ifelse(prob > .5, "successful", "failed")) %>%
-  na.omit() %>%
-  pull(class)
-
-# pred_log_odds  
-mean(true_state == pred_log_odds)
-```
-
-```{r}
-#backers_out <- kickstart_new %>%
-#  filter(backers <= 500) %>%
-#  filter(pledged <= 25000)
-```
-
-```{r}
-#m_pledged <- lm(pledged ~ backers, backers_out)
-#tidy(m_pledged)
-#glance(m_pledged)
-#m_pledged_aug <- augment(m_pledged)
-```
-
-```{r}
-ggplot(step_full, mapping = aes(x = .fitted, y = .resid)) +
-  geom_point(alpha = 0.5) +
-  geom_hline(yintercept = 0, color = "blue", lty = 2) 
-```
-
-## Check Independence
-
-```{r conditions_check_independence}
-full_model <- augment(step_full)
-ggplot(data = full_model, aes(x = 1:nrow(full_model), y = .resid)) +
-geom_point() +
-labs(x = "Index", y = "Residual", title="Residuals vs Index",
-     subtitle = "Both the variables seems independent") +
-  theme_minimal(base_size = 16)
-```
-
-```{r residual_variance}
-ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
-  geom_point() +
-  geom_hline(yintercept = 0, lty = 3, color = "gray") +
-  labs(title="Residuals vs the fitted value", y = "Residuals", 
-       x = expression(hat(y)), 
-       subtitle="We can see constant variance and distrbution to be around 0") +
-  theme_minimal(base_size = 16)
-```
-
-```{r histogram}
-ggplot(data = full_model, aes(x = .resid)) +
-  geom_histogram(binwidth = .5) +
-  labs(title="Count vs Residuals", 
-       subtitle="The histogram seems to be centered around 0",
-       x = "Residuals", y = "Count") +
-  theme_minimal(base_size = 16)
-```
 
