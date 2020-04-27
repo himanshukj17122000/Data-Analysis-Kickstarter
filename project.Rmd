@@ -302,7 +302,7 @@ true_state <- kickstart_1 %>%
   slice(indices) %>%
   pull(state)
 
-<<<<<<< HEAD
+
 kickstart_train
 kickstart_test
 train_state
@@ -311,7 +311,8 @@ true_state
 
 =======
 ```{r knn}
-train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F, use.all = F)
+train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F
+                 , use.all = F)
 #train_knn 
 
 
@@ -319,13 +320,14 @@ train_knn <- knn(kickstart_train, kickstart_test, train_state, k = 35, prob = F,
 
 values <- numeric(12) 
 for(i in 1:12) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, k = i, prob = FALSE, use.all = FALSE)
-```
-=======
-#true_state
+  trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
+                    k = i, prob = FALSE, use.all = FALSE)
 ```
 
->>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
+#true_state
+
+
+
 
 ```{r knn_best}
 values <- numeric(157) 
@@ -386,7 +388,8 @@ success_state <- kickstart_new %>%
   pull(state) 
 
 library(class)
-mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+mod_knn <- knn(train, new_project, success_state, k = 400, 
+prob = F, use.all = T)
 mod_knn
 ```
 -pledged and goal have more significant effect on determining state than backers
@@ -426,16 +429,16 @@ kickstart_new %>%
 ## Linear Model 
 
 ```{r all the variables}
-<<<<<<< HEAD
+
 
 m_full <- lm(state ~ main_category + goal + backers + usd_pledged + country
             , data = kickstart_new)
 m_full <- lm(state ~ goal + backers + pledged,
             data = kickstart_new)
-=======
+
 m_full <- glm(state ~ goal + backers + pledged + main_category + country,
             data = kickstart_1, family = "binomial")
->>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
+
 
 tidy(m_full)
 glance(m_full)
@@ -444,12 +447,12 @@ glance(m_full)
 #check lab 7! for fitting logistic model and comparing with knn
 #lecture with knn shows predictions possibly
 ```
-<<<<<<< HEAD
 
-=======
+
+
 p-value for country is around 0.9 so very large so we expect it to not be
 in the backward 
->>>>>>> 245cddff46d40cd3518ef2e27746ffd5fd86036c
+
 
 ```{r full model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
