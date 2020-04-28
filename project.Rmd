@@ -63,9 +63,7 @@ glimpse(kickstart)
 ```
 
 
-```{r}
- write.csv(kickstart_1, 'kickstart_small.csv')
-```
+
 
 
 ```{r success_rate}
@@ -137,7 +135,7 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
   labs(title = "Successful Projects Generally Receive More Pledged Money",
        x = "State", y = "Pledged ($)", fill = "State")
 
-ggplot(data = kickstart_states,mapping = aes(y = pledged, x = goal, 
+ggplot(data = kickstart_states, mapping = aes(y = pledged, x = goal, 
                                            color = factor(state))) +
   geom_point(alpha = 0.3) +
   labs(color = "Goal of the Project", y = "Pledged Money") +
@@ -284,17 +282,17 @@ The outliers were observed and removed to make the dataset more generic and
 to get better results. Outliers would have an effect on our results. 
 
 ```{r visualizations_minus_outliers}
-ggplot(kickstart_out, mapping = aes(x = pledged)) +
+ggplot(kickstart, mapping = aes(x = pledged)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Pledged", y = "Count")
 
-ggplot(kickstart_out, mapping = aes(x = goal)) +
+ggplot(kickstart, mapping = aes(x = goal)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Goal", y = "Count")
 
-ggplot(kickstart_out, mapping = aes(x = backers)) +
+ggplot(kickstart, mapping = aes(x = backers)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Backers", y = "Count")
@@ -321,7 +319,7 @@ deviation.
 ## K-NN
 
 ```{r indices}
-indices <- sample(nrow(kickstart), 2500)
+indices <- sample(nrow(kickstart), 880)
 ```
 
 ```{r new_datasets_knn}
@@ -357,20 +355,30 @@ set.seed(04272020)
 
 
 ```{r knn_best}
-i=1
-k.optm=1
-values <- numeric(79) 
-for(i in 1:79) {
-  trains_knn <- knn(kickstart_train, kickstart_test, train_state, 
-                    k = (2*i)-1, prob = FALSE, use.all = FALSE)
-  k.optm[i] <- 100 * sum(true_state == trains_knn)/NROW(kickstart_test)
-  k=i
-  cat(k,'=',k.optm[i],'')
-  x <- mean(trains_knn == true_state)  
+i = 1
+k.optm = 1
+values <- numeric(79)
+for (i in 1:79) {
+  trains_knn <- knn(
+    kickstart_train,
+    kickstart_test,
+    train_state,
+    k = (2 * i) - 1,
+    prob = FALSE,
+    use.all = FALSE
+  )
+  k.optm[i] <-
+    100 * sum(true_state == trains_knn) / NROW(kickstart_test)
+  k = i
+  cat(k, '=', k.optm[i], '')
+  x <- mean(trains_knn == true_state)
   values[i] <- x
 }
 tibble(values)
-plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
+plot(k.optm,
+     type = "b",
+     xlab = "K- Value",
+     ylab = "Accuracy level")
 which.max(values)
 ```
 We get the highest accuracy when the value of K is 2. The accuracy is 
@@ -427,7 +435,7 @@ mean(true_state == pred_log_odds)
 ```
 
 ```{r regression}
-lm_interaction <- lm(state ~ pledged+goal+pledged:goal, 
+lm_interaction <- lm(state ~ pledged + goal + pledged:goal, 
              data =kickstart_train_log)
 
 lm_interaction%>%
@@ -437,7 +445,7 @@ lm_interaction%>%
 
 ```{r}
 sample_stat <- kickstart_train_log%>%
-  specify(pledged~goal) %>% 
+  specify(pledged ~ goal) %>% 
   calculate(stat = "slope")%>%
   pull(stat)
 sample_stat
@@ -452,17 +460,25 @@ slope_val
 
 ```{r making_a_graph, fig.width=9, fig.height=5}
 ggplot(data = kickstart_train_log,
-       mapping = aes(y = pledged, x = goal, color = factor(state))) +
+       mapping = aes(
+         y = pledged,
+         x = goal,
+         color = factor(state)
+       )) +
   geom_point(alpha = 0.3) +
   labs(color = "Goal", y = "pledged amount") +
   theme_bw(base_size = 16)
 
-slope_val%>%
-  visualise(alpha=0.5)+
-  geom_vline(xintercept = 0,color="purple", lty=2, size=1)+
-  theme_light(base_size=18)+
-  shade_p_value(obs_stat=sample_stat, direction="two_sided", color="red"
-                , pink="green")
+slope_val %>%
+  visualise(alpha = 0.5) +
+  geom_vline(
+    xintercept = 0,
+    color = "purple", lty = 2, size = 1) +
+  theme_light(base_size = 18) +
+  shade_p_value(
+    obs_stat = sample_stat,
+    direction = "two_sided",
+    color = "red" ,pink = "green")
 
 ```
 
@@ -498,17 +514,17 @@ a major predictor of success.
 ```{r create_values}
 mean_goal <- kickstart_1 %>%
   group_by(state) %>%
-  filter(state=='successful') %>%
+  filter(state =='successful') %>%
   summarise(mean_goal = mean(goal))
 
 mean_pledged <- kickstart_1 %>%
   group_by(state) %>%
-  filter(state=='successful') %>%
+  filter(state =='successful') %>%
   summarise(mean_pledged = mean(pledged))
 
 mean_backers <- kickstart_1 %>%
   group_by(state) %>%
-  filter(state=='successful') %>%
+  filter(state =='successful') %>%
   summarise(mean_backers = mean(backers))
 
 
