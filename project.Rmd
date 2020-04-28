@@ -58,9 +58,15 @@ library(dplyr)
 library(infer)
 ```
 ```{r reading_the_data}
-kickstart <- read_csv("data/ks-projects-201612.csv")
+kickstart <- read_csv("kickstart_small.csv")
 glimpse(kickstart)
 ```
+
+
+```{r}
+ write.csv(kickstart_1, 'kickstart_small.csv')
+```
+
 
 ```{r success_rate}
 kickstart%>%
@@ -260,16 +266,7 @@ set.seed(04232020)
 ```
 
 
-```{r clean_data}
-kickstart_new <- kickstart %>%
-  select(-(X14:X17)) %>%
-  rename(usd_pledged = 'usd pledged') %>%
-  filter(state == "successful" | state == "failed", country == "US") %>%
-  mutate(state = factor(state))%>%
-  na.omit()
 
-kickstart_new
-```
 We filtered out the data since we want to concentrate on the startups that 
 either failed or were successful. There are many other states but some of them
 have garbage values so we filtered the dataset. We are also looking at US 
@@ -279,28 +276,10 @@ inaccurate results. We are basically using this to make sure that all the
 observations used have things in common.
 
 
-```{r shrink_data}
-kickstart_1 <- kickstart_new %>%
-  group_by(state) %>%
-  sample_frac(0.1) %>%
-  #filter(backers <= 500) %>%
-  #filter(pledged <= 25000) %>%
-  ungroup()
-
-kickstart_1
-```
 Since our dataset had too many observations, we decided to stick to using a 
 smaller fraction of it in order to not break our program. 
 
 
-```{r remove_outliers}
-kickstart_out <- kickstart_1 %>%
-  filter(pledged <= 11933.5) %>%
-  filter(goal <= 34500) %>%
-  filter(backers <= 154.4)
-  
-kickstart_out
-```
 The outliers were observed and removed to make the dataset more generic and 
 to get better results. Outliers would have an effect on our results. 
 
@@ -329,7 +308,7 @@ backers.
 
 
 ```{r new_variables}
-kickstart_mutated <- kickstart_1 %>%
+kickstart_mutated <- kickstart %>%
   mutate(goal = ((goal- mean(goal)) / sd(goal)),
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
     backers = ((backers - mean(backers)) / sd(backers)))
@@ -342,7 +321,7 @@ deviation.
 ## K-NN
 
 ```{r indices}
-indices <- sample(nrow(kickstart_1), 2500)
+indices <- sample(nrow(kickstart), 2500)
 ```
 
 ```{r new_datasets_knn}
@@ -378,7 +357,6 @@ set.seed(04272020)
 
 
 ```{r knn_best}
-
 i=1
 k.optm=1
 values <- numeric(79) 
@@ -428,8 +406,8 @@ had backers as one of the factors but from our backward eliminiation process
 we can conclude that only goal and pledged are the necessary variables.
 
 ```{r conf_int_coefficients}
-#tidy(step_full, conf.int = TRUE, conf.level = 0.95)
-#confint(step_full)
+tidy(step_full, conf.int = TRUE, conf.level = 0.95)
+confint(step_full)
 
 ```
 COMMENT: how do we get this function to work? Shawn said to google it but no 
@@ -467,7 +445,7 @@ sample_stat
 slope_val <- kickstart_train_log %>%
   specify(pledged~goal) %>% 
   hypothesize(null = "independence") %>%
-  generate(reps = 1000, type = "permute") %>%
+  generate(reps = 1, type = "permute") %>%
   calculate(stat = "slope")
 slope_val
 ```
