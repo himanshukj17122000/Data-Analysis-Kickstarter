@@ -59,7 +59,6 @@ library(infer)
 ```
 ```{r reading_the_data}
 kickstart <- read_csv("kickstart_small.csv")
-glimpse(kickstart)
 ```
 
 
@@ -344,10 +343,10 @@ We make the vectors required for training and testing the model. The model is
 tested on 2500 observations that we get from the dataset. 
 
 ```{r view_knn_data}
-kickstart_train
-kickstart_test
-train_state
-true_state
+#kickstart_train
+#kickstart_test
+#train_state
+#true_state
 ```
 ```{r set_seed}
 set.seed(04272020)
@@ -391,7 +390,7 @@ kickstart_train_log <- kickstart_mutated %>%
   slice(-indices) %>%
   select(goal, pledged, backers, state) 
 
-m_full <- glm(state ~ goal + backers + pledged,
+m_full <- glm(factor(state) ~ goal + backers + pledged,
             data = kickstart_train_log, family = "binomial")
 
 tidy(m_full)
@@ -414,10 +413,11 @@ had backers as one of the factors but from our backward eliminiation process
 we can conclude that only goal and pledged are the necessary variables.
 
 ```{r conf_int_coefficients}
-tidy(step_full, conf.int = TRUE, conf.level = 0.95)
-confint(step_full)
+#tidy(step_full, conf.int = TRUE, conf.level = 0.95)
+#confint(step_full)
 
 ```
+
 COMMENT: how do we get this function to work? Shawn said to google it but no 
 luck. Anyone have any ideas?
 
@@ -435,7 +435,7 @@ mean(true_state == pred_log_odds)
 ```
 
 ```{r regression}
-lm_interaction <- lm(state ~ pledged + goal + pledged:goal, 
+lm_interaction <- lm(factor(state) ~ pledged + goal + pledged:goal, 
              data =kickstart_train_log)
 
 lm_interaction%>%
@@ -453,7 +453,7 @@ sample_stat
 slope_val <- kickstart_train_log %>%
   specify(pledged~goal) %>% 
   hypothesize(null = "independence") %>%
-  generate(reps = 1, type = "permute") %>%
+  generate(reps = 500, type = "permute") %>%
   calculate(stat = "slope")
 slope_val
 ```
@@ -466,7 +466,8 @@ ggplot(data = kickstart_train_log,
          color = factor(state)
        )) +
   geom_point(alpha = 0.3) +
-  labs(color = "Goal", y = "pledged amount") +
+  labs(color = "State", y = "Pledged Amount", x = "Goal",
+       title = "Standardized Scatterplot Pledged Amount vs. Goal") +
   theme_bw(base_size = 16)
 
 slope_val %>%
@@ -487,6 +488,8 @@ slope_val%>%
   get_p_value(obs_stat = sample_stat, direction = "two_sided")
 ```
 
+
+
 discuss how compares to knn test
 We can see that the accuracy for a regression model is 99.88%, which is much 
 more than the accuracy we got from our KNN model. The KNN model had the 
@@ -495,8 +498,8 @@ highest accuracy at 99%.
 ## Does category change anything?
 
 ```{r main_category_model}
-m_main <- glm(state ~ goal + backers + pledged + main_category,
-            data = kickstart_1, family = "binomial")
+m_main <- glm(factor(state) ~ goal + backers + pledged + main_category,
+            data = kickstart, family = "binomial")
 
 tidy(m_main)
 glance(m_main)
@@ -512,17 +515,17 @@ a major predictor of success.
 ## Predict Potential Project Success
 
 ```{r create_values}
-mean_goal <- kickstart_1 %>%
+mean_goal <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_goal = mean(goal))
 
-mean_pledged <- kickstart_1 %>%
+mean_pledged <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_pledged = mean(pledged))
 
-mean_backers <- kickstart_1 %>%
+mean_backers <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_backers = mean(backers))
@@ -537,9 +540,9 @@ we need to decide specific values for our potential projects and explain
 why we chose these values
 
 ```{r predicting_project_succes}
-new_project <- tibble(goal = c(1000, 9627.803, 27000),
-                      backers = c(15, 253.86, 750),
-                      pledged = c(925, 21480.74, 24000))
+new_project <- tibble(goal = c(100, 9627.803, 27000),
+                      backers = c(150, 253.86, 7500),
+                      pledged = c(1000, 21480.74, 45000))
 
 pred_project <- augment(m_full, newdata = new_project) %>% 
   pull(.fitted) 
@@ -547,15 +550,15 @@ pred_project <- augment(m_full, newdata = new_project) %>%
 pred_probs <- exp(pred_project) / (1 + exp(pred_project))
 pred_probs
 
-#train <- kickstart_new %>% 
-  #select(goal, pledged, backers)
+train <- kickstart_new %>% 
+  select(goal, pledged, backers)
 
-#success_state <- kickstart_new %>% 
-  #pull(state) 
+success_state <- kickstart_new %>% 
+  pull(state) 
 
-#library(class)
-#mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
-#mod_knn
+library(class)
+mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+mod_knn
 
 ```
 why is it all 0?
@@ -576,6 +579,8 @@ How do we fix this?
     future 
 -discuss what we could do differently
     - data set huge
+    - had to make changes, cannot predict for bigger values after we removed
+    outliers
     - usd_pledged
     - etc.
     
