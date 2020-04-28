@@ -372,10 +372,13 @@ kickstart_test
 train_state
 true_state
 ```
+```{r set_seed}
+set.seed(04272020)
+```
 
 
 ```{r knn_best}
-set.seed(04272020)
+
 i=1
 k.optm=1
 values <- numeric(79) 
@@ -444,6 +447,50 @@ pred_log_odds <- augment(m_full, newdata = kickstart_test) %>%
 
 mean(true_state == pred_log_odds)
 ```
+
+```{r regression}
+lm_interaction <- lm(state ~ pledged+goal+pledged:goal, 
+             data =kickstart_train_log)
+
+lm_interaction%>%
+  tidy() %>%
+  select(term, estimate)
+```
+```{r}
+sample_stat <- kickstart_train_log%>%
+  specify(pledged~goal) %>% 
+  calculate(stat = "slope")%>%
+  pull(stat)
+sample_stat
+
+slope_val <- kickstart_train_log %>%
+  specify(pledged~goal) %>% 
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "slope")
+slope_val
+```
+```{r making_a_graph, fig.width=9, fig.height=5}
+ggplot(data = kickstart_train_log,
+       mapping = aes(y = pledged, x = goal, color = factor(state))) +
+  geom_point(alpha = 0.3) +
+  labs(color = "Goal", y = "pledged amount") +
+  theme_bw(base_size = 16)
+
+slope_val%>%
+  visualise(alpha=0.5)+
+  geom_vline(xintercept = 0,color="purple", lty=2, size=1)+
+  theme_light(base_size=18)+
+  shade_p_value(obs_stat=sample_stat, direction="two_sided", color="red"
+                , pink="green")
+
+```
+
+```{r get_p_value}
+slope_val%>%
+  get_p_value(obs_stat = sample_stat, direction = "two_sided")
+```
+
 discuss how compares to knn test
 We can see that the accuracy for a regression model is 99.88%, which is much 
 more than the accuracy we got from our KNN model. The KNN model had the 
