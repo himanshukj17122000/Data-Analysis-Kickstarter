@@ -456,6 +456,7 @@ lm_interaction%>%
   tidy() %>%
   select(term, estimate)
 ```
+
 ```{r}
 sample_stat <- kickstart_train_log%>%
   specify(pledged~goal) %>% 
@@ -470,6 +471,7 @@ slope_val <- kickstart_train_log %>%
   calculate(stat = "slope")
 slope_val
 ```
+
 ```{r making_a_graph, fig.width=9, fig.height=5}
 ggplot(data = kickstart_train_log,
        mapping = aes(y = pledged, x = goal, color = factor(state))) +
@@ -509,7 +511,9 @@ We included the categorical variable main category to check if it has any
 influence over the state of the startup. From the table above we can see that 
 the value changed as the category changes with dance on average  increasing the
 state of success by 11.99. Other than that, other categories don't have a big 
-influence on the outcome of the startup.
+influence on the outcome of the startup. However, the p-values are generally
+above the significance level of 0.05, so we do not consider main category as 
+a major predictor of success.
 
 ## Predict Potential Project Success
 
