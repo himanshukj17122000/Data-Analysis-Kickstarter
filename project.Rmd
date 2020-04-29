@@ -11,7 +11,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, comment = NA, 
                       message = FALSE, warning = FALSE,
-                      fig.height=6, fig.width = 9, fig.align = "center")
+                      fig.height = 6, fig.width = 9, fig.align = "center")
 ```
 
 
@@ -61,7 +61,7 @@ library(infer)
 kickstart <- read_csv("./data/kickstart_smallest.csv")
 ```
 
-```{r}
+```{r remove_outliers}
 kickstart <- kickstart %>% 
    mutate(state = as.factor(state)) %>% 
   filter(pledged <= 11933.5) %>%
@@ -75,11 +75,6 @@ kickstart
 ```{r success_rate}
 kickstart %>%
   group_by(state) %>%
-  filter(
-    state == "canceled" |
-      state == 'failed' | state == 'live' | state == 'successful' |
-      state == 'suspended' | state == 'undefined'
-  ) %>%
   count(state) %>%
   ungroup() %>%
   mutate(rate = n / sum(n)) %>%
@@ -127,7 +122,6 @@ of the site.
 ```{r pledged_needed, fig.width = 9, fig.height = 5}
 pledged_needed <- kickstart %>%
   group_by(state) %>%
-  filter(state=='failed'|state=='successful') %>%
   summarise(mean = mean(pledged), 
             min = min(pledged),
             max = max(pledged),
@@ -136,8 +130,6 @@ pledged_needed <- kickstart %>%
 
 pledged_needed
 
-kickstart_states<-kickstart%>%
-  filter(state=='failed'|state=='successful')
 
 ggplot(data = pledged_needed, mapping = aes(x = state, y = mean, 
                                             fill = state)) +
@@ -146,7 +138,7 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
   labs(title = "Successful Projects Generally Receive More Pledged Money",
        x = "State", y = "Pledged ($)", fill = "State")
 
-ggplot(data = kickstart_states, mapping = aes(y = pledged, x = goal, 
+ggplot(data = kickstart, mapping = aes(y = pledged, x = goal, 
                                            color = factor(state))) +
   geom_point(alpha = 0.3) +
   labs(color = "Goal of the Project", y = "Pledged Money") +
@@ -172,7 +164,6 @@ needed by a creator to fund and finish their project.
 ```{r goal_bar}
 avg_goal <- kickstart %>%
   group_by(state) %>%
-  filter(state=='failed'|state=='successful') %>%
   summarise(mean_goal = mean(goal))
 
 ggplot(data = avg_goal, mapping = aes(x = state, y = mean_goal, fill = state)) +
@@ -371,7 +362,7 @@ true_state <- kickstart_mutated %>%
 ```
 
 We make the vectors required for training and testing the model. The model is 
-tested on 2500 observations that we get from the dataset. 
+tested on 880 observations that we get from the dataset. 
 
 ```{r view_knn_data}
 #kickstart_train
@@ -380,9 +371,6 @@ tested on 2500 observations that we get from the dataset.
 #true_state
 ```
 
-```{r set_seed}
-set.seed(04272020)
-```
 
 
 ```{r knn_best}
@@ -551,17 +539,17 @@ a major predictor of success.
 ## Predict Potential Project Success
 
 ```{r create_values}
-mean_goal <- kickstart %>%
+mean_goal <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_goal = mean(goal))
 
-mean_pledged <- kickstart %>%
+mean_pledged <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_pledged = mean(pledged))
 
-mean_backers <- kickstart %>%
+mean_backers <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_backers = mean(backers))
@@ -576,9 +564,9 @@ we need to decide specific values for our potential projects and explain
 why we chose these values
 
 ```{r predicting_project_succes}
-new_project <- tibble(goal = c(100, 9627.803, 27000),
-                      backers = c(150, 253.86, 7500),
-                      pledged = c(1000, 21480.74, 45000))
+new_project <- tibble(goal = c(100, -.46, 27000),
+                      backers = c(15, .77, 7500),
+                      pledged = c(60, -1.5, 45000))
 
 pred_project <- augment(m_full, newdata = new_project) %>% 
   pull(.fitted) 
