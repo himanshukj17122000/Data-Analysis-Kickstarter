@@ -388,8 +388,6 @@ plot(k.optm,
      xlab = "K- Value",
      ylab = "Accuracy level")
 which.max(values) 
-
-
 ```
 
 We set the indices, the number of observations to be tested on, to be 880. 
@@ -400,7 +398,8 @@ that we get from the dataset.
 
 We create two new datasets, kickstart_train and kickstart_test. kickstart_train 
 contains only observations that are not in the row indices created, and 
-kickstart_test contains only observations that are in the row indices created. 
+kickstart_test contains only observations that are in the row indices created.
+
 We create create a vector of the class labels for the training dataset and call 
 it train_state. We create a vector of true kickstart state in our test dataset 
 and call it true_state. 
@@ -411,9 +410,15 @@ prediction accuracy in our dataset along with its associated prediction
 accuracy. We then plot all the values of k and its associated prediction 
 accuracy to examine the trend. 
 
-We get the highest accuracy of 99% when the value of K is 1. The graph also
+We get the highest accuracy of 95.23% when the value of K is 1. The graph also
 displays this outcome and shows that prediction accuracy tends to decrease
 as k increases.
+
+We use this prediction accuracy to predict the project's success. Given a new
+start-up project, we plot that project acordingly to its attributes, check 
+for the nearest neightbor of the project, and assign that project to the 
+according state. Using this method, the prediction accuracy is 95.23%, which is 
+the highest prediction accuracy we can get.
 
 ## Logistic Regression Model 
 
