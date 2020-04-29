@@ -73,8 +73,6 @@ kickstart_outlier <- kickstart %>%
   filter(backers <= 154.4)
 ```
 
-
-
 ```{r success_rate}
 kickstart %>%
   group_by(state) %>%
@@ -267,16 +265,14 @@ set.seed(04232020)
 
 We filtered out the data since we want to concentrate on the startups that 
 either failed or were successful. There are many other states but some of them
-have garbage values so we filtered the dataset. We are also looking at US 
-specific startups since other countries have different startup ecosystem and 
+have insignificant values so we filtered the dataset. We are also looking at the 
+US specific startups since other countries have different startup ecosystem and 
 just looking at this dataset and making conclusions for them would give us 
 inaccurate results. We are basically using this to make sure that all the 
-observations used have things in common.
-
+observations used orriginate from the same country.
 
 Since our dataset had too many observations, we decided to stick to using a 
 smaller fraction of it in order to not break our program. 
-
 
 The outliers were observed and removed to make the dataset more generic and 
 to get better results. Outliers would have an effect on our results. 
@@ -304,6 +300,7 @@ The graphs clearly shows that big projects are hardly launched on kickstarter.
 It also shows that the pledged amount is typically smaller than the goal amount
 typically for larger projects. Additionally, the number of backers is only above
 100 for only a small number of projects. 
+
 ```{r calc_freq_big}
 kickstart %>% 
    filter(pledged >= 4000) %>% 
@@ -425,7 +422,7 @@ kickstart_train_log <- kickstart_mutated %>%
 m_full <- glm(state ~ goal + backers + pledged,
             data = kickstart_train_log, family = "binomial")
 
-tidy(m_full)
+# tidy(m_full)
 ```
 $$\widehat{\mbox{state}} = (intercept) + (goal_num)~\mbox{goal} + (backers_num)~\mbox{backers} + (pledged_num)~\mbox{pledged}$$
 
@@ -434,7 +431,7 @@ $$\widehat{\mbox{state}} = (intercept) + (goal_num)~\mbox{goal} + (backers_num)~
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
                   results = "hide")
 
-tidy(step_full)
+# tidy(step_full)
 ```
 $$\widehat{\mbox{state}} = -4121.634 -98315.777~\mbox{goal} + 
 17313.216~\mbox{pledged}$$
@@ -452,14 +449,14 @@ pred_log_odds <- augment(m_full, newdata = kickstart_test) %>%
   mutate(class = ifelse(prob >= .5, "successful", "failed")) %>%
   pull(class)
 
-mean(true_state == pred_log_odds)
+result_pred_log_odds <- mean(true_state == pred_log_odds)
 ```
 
 ```{r regression_interaction_pledged_and_goal}
 lm_interaction <- lm(pledged ~ goal, 
              data = kickstart_train_log)
 
-lm_interaction%>%
+table_interaction <- lm_interaction%>%
   tidy() %>%
   select(term, estimate, p.value)
 ```
@@ -468,10 +465,9 @@ lm_interaction%>%
 ggplot(data = kickstart_outlier, mapping = aes(y = pledged, x = goal, 
                                            color = factor(state))) +
   geom_point(alpha = 0.3) +
-  labs(title = "Gaol and Pledged Are Not Perfectly Correlated",
+  labs(title = "Goal and Pledged Are Not Perfectly Correlated",
   color = "State of the Project", y = "Pledged Money", x = "Goal") +
   theme_bw(base_size = 16)
-
 ```
 
 
@@ -487,8 +483,8 @@ highest accuracy at 99%.
 m_main <- glm(factor(state) ~ goal + backers + pledged + main_category,
             data = kickstart, family = "binomial")
 
-tidy(m_main)
-glance(m_main)
+#tidy(m_main)
+#glance(m_main)
 ```
 We included the categorical variable main category to check if it has any 
 influence over the state of the startup. From the table above we can see that the p-values are generally
@@ -512,11 +508,6 @@ median_backers <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(med_backers = median(backers))
-
-
-median_goal
-median_pledged
-median_backers
 ```
 
 
@@ -542,7 +533,6 @@ success_state <- kickstart_mutated %>%
 
 mod_knn <- knn(train, new_project, success_state, k = 1, prob = F, use.all = T)
 mod_knn
-
 ```
 
 
