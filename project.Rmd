@@ -614,6 +614,37 @@ goal and backers were held constant and even a relatively small increase in
 pledged occurred between two projects, the state changed from failed to 
 successful. 
 
+## ASSUMPTIONS
+```{r conditions_check_independence}
+full_model <- augment(lm_interaction)
+ggplot(data = lm_interaction, aes(x = 1:nrow(full_model), y = .resid)) +
+geom_point() +
+labs(x = "Index", y = "Residual", title="Residuals vs Index",
+ subtitle = "Both the variables don't seem independent")+
+  theme_minimal(base_size = 16)
+```
+
+```{r residual_variance}
+ggplot(data = full_model, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, lty = 3, color = "gray") +
+  labs(title="Residuals vs the fitted value", y = "Residuals", 
+  x = expression(hat(y)), 
+  subtitle="We don't see constant variance and distribution to be around 0") +
+  theme_minimal(base_size = 16)
+```
+
+```{r histogram}
+ggplot(data = full_model, aes(x = .resid)) +
+  geom_histogram() +
+  labs(title="Count vs Residuals", 
+  subtitle="The histogram is not centered around 0",
+  x = "Residuals", y = "Count") +
+  theme_minimal(base_size = 16)
+```
+We can see that none of the linear model assumptions are being satisfied 
+by this model but we assumed them to run the model for our dataset. 
+
 In retrospect, there are a few things we could have done differently to improve
 the results of our analysis. First, our original data set included 280,000 plus
 observations, which caused us problems in trying to perform tests. Although we
@@ -630,7 +661,9 @@ inputted values, we continuously got values of zero percent success rate even
 when we knew this was not the case. Thus, using the logistic regression model 
 would have in theory been more accurate, but we were unable to do so. The k-NN
 model, however, still had a high prediction accuracy, so our predicted project
-outcomes are still likely valid. 
+outcomes are still likely valid. As we saw above, the linear model is not 
+satisfying the conditions required so we believe making a better model is 
+using that as a predictor would be something we would like to do next time.
 
 If we wanted to further explore this analysis, we could take into account 
 projects proposed outside of the US and see if our prediction variables still
