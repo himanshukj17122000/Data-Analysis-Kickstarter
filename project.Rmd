@@ -400,7 +400,7 @@ We create two new datasets, kickstart_train and kickstart_test. kickstart_train
 contains only observations that are not in the row indices created, and 
 kickstart_test contains only observations that are in the row indices created.
 
-We create create a vector of the class labels for the training dataset and call 
+We create a vector of the class labels for the training dataset and call 
 it train_state. We create a vector of true kickstart state in our test dataset 
 and call it true_state. 
 
@@ -414,11 +414,6 @@ We get the highest accuracy of 95.23% when the value of K is 1. The graph also
 displays this outcome and shows that prediction accuracy tends to decrease
 as k increases.
 
-We use this prediction accuracy to predict the project's success. Given a new
-start-up project, we plot that project acordingly to its attributes, check 
-for the nearest neightbor of the project, and assign that project to the 
-according state. Using this method, the prediction accuracy is 95.23%, which is 
-the highest prediction accuracy we can get.
 
 ## Logistic Regression Model 
 
@@ -503,32 +498,35 @@ a major predictor of success.
 ## Predict Potential Project Success
 
 ```{r create_values}
-mean_goal <- kickstart %>%
+median_goal <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
-  summarise(mean_goal = mean(goal))
+  summarise(med_goal = median(goal))
 
-mean_pledged <- kickstart %>%
+median_pledged <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
-  summarise(mean_pledged = mean(pledged))
+  summarise(med_pledged = median(pledged))
 
-mean_backers <- kickstart %>%
+median_backers <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
-  summarise(mean_backers = mean(backers))
+  summarise(med_backers = median(backers))
 
 
-mean_goal
-mean_pledged
-mean_backers
+median_goal
+median_pledged
+median_backers
 ```
 
 
 ```{r predicting_project_succes}
-new_project <- tibble(goal = c(100, 9709.67, 27000),
-                      backers = c(15, 240.6017, 7500),
-                      pledged = c(60, 19071.34, 45000))
+new_project <- tibble(#goal = c(1000, 1000, 9709.67, 27000, 27000),
+                      #backers = c(5, 70, 240.6017, 7500, 7500),
+                      #pledged = c(30, 30, 19071.34, 45000, 400))
+                      goal = c(-0.05, -0.05, -0.0308734, 2, 2),
+                      backers = c(-0.1, 4, -0.06979549, 0.8, 0.8),
+                      pledged = c(-0.5, -0.5, -0.07385757, 4, 3))
 
 #pred_project <- augment(m_full, newdata = new_project) %>% 
   #pull(.fitted) 
@@ -542,13 +540,24 @@ train <- kickstart_mutated %>%
 success_state <- kickstart_mutated %>% 
   pull(state) 
 
-mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
+mod_knn <- knn(train, new_project, success_state, k = 1, prob = F, use.all = T)
 mod_knn
 
 ```
 
 
 ## ANALYSIS
+
+
+
+
+We use this prediction accuracy to predict the project's success. Given a new
+start-up project, we plot that project acordingly to its attributes, check 
+for the nearest neightbor of the project, and assign that project to the 
+according state. Using this method, the prediction accuracy is 95.23%, which is 
+the highest prediction accuracy we can get.
+
+
 
 -discuss outliers and need to shrink data
 -discuss k-nn test and 99% accuracy result
@@ -578,6 +587,8 @@ THINGS TO GO BACK OVER:
 -do we need to use outlier set for everything or can they be considered
 -knitting
 -VISUALIZATIONS???
+
+
 
 
 
