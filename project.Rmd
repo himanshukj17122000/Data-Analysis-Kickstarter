@@ -346,7 +346,6 @@ for (i in 1:79) {
   k.optm[i] <-
     100 * sum(true_state == trains_knn) / NROW(kickstart_test)
   k = i
-  cat(k, '=', k.optm[i], '')
   x <- mean(trains_knn == true_state)
   values[i] <- x
 }
