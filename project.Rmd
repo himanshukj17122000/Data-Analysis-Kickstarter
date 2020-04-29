@@ -19,13 +19,13 @@ knitr::opts_chunk$set(echo = FALSE, comment = NA,
 # Introduction
 
 Our general research question to find out what are the most important factors
-in contributing to the success of a startup project. Our dataset is comprised
-of the statistics from over 300,000 Kickstarter proposals, collected directly
-from the Kickstarter Platform (found on Kaggle). It includes variables that 
-could be essential to determining the success of a startup such as, the amount 
-of money pledged to a startup, the number of backers the project has, or the 
-industry the company is in. The key variable we are looking at is the 
-binary variable called "state", which shows which startups were successful 
+in contributing to the success of a startup project in the United States. Our 
+dataset is comprised of the statistics from over 300,000 Kickstarter proposals, 
+collected directly from the Kickstarter Platform (found on Kaggle). It includes 
+variables that could be essential to determining the success of a startup such 
+as, the amount of money pledged to a startup, the number of backers the project
+has, or the industry the company is in. The key variable we are looking at is 
+the binary variable called "state", which shows which startups were successful 
 and which were not. This will be our response variable in the analyses. We think 
 this analysis of this data would be particularly useful if any member of our 
 group wanted to start our own creative project by giving us an idea about which 
@@ -63,16 +63,17 @@ kickstart <- read_csv("kickstart_small.csv")
 
 
 
-
-
 ```{r success_rate}
-kickstart%>%
-  group_by(state)%>%
-  filter(state=="canceled"| state=='failed'|state=='live'|state=='successful'|
-           state=='suspended'|state=='undefined')%>%
-  count(state)%>%
-  ungroup()%>%
-  mutate(rate = n/sum(n))%>%
+kickstart %>%
+  group_by(state) %>%
+  filter(
+    state == "canceled" |
+      state == 'failed' | state == 'live' | state == 'successful' |
+      state == 'suspended' | state == 'undefined'
+  ) %>%
+  count(state) %>%
+  ungroup() %>%
+  mutate(rate = n / sum(n)) %>%
   arrange(n)
 ```
 From this table, we see that most of the companies have a state of either failed
@@ -83,13 +84,7 @@ our analysis. We can also see that most of the companies failed so it is really
 important to understand the problems in order to launch a successful campaign. 
 Hence, we believe that this analysis would be helpful for future entrepreneurs.
 
-```{r category_wise}
-kickstart%>%
-  group_by(category)%>%
-  count()%>%
-  filter(n > 100)%>%
-  arrange(desc(n))
-```
+
 ```{r main_categories}
 kickstart%>%
   group_by(main_category)%>%
@@ -99,6 +94,14 @@ kickstart%>%
   ungroup()%>%
   mutate(share_of_projects = n/sum(n))
 ```
+```{r category_wise}
+kickstart%>%
+  group_by(category)%>%
+  count()%>%
+  filter(n > 100)%>%
+  arrange(desc(n))
+```
+
 Looking at the numbers in the categories and main categories, we can get a
 better idea at what kind of projects are more successful than others. Knowing
 this will help us narrow down what the crowd is interested in investing in, and 
@@ -112,7 +115,7 @@ results.
 The variable `pledged` tells the amount of money pledged by the crowd, or users
 of the site. 
 
-```{r pledged_needed, fig.width=9, fig.height=5}
+```{r pledged_needed, fig.width = 9, fig.height = 5}
 pledged_needed <- kickstart %>%
   group_by(state) %>%
   filter(state=='failed'|state=='successful') %>%
@@ -284,27 +287,44 @@ to get better results. Outliers would have an effect on our results.
 ggplot(kickstart, mapping = aes(x = pledged)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
-  labs(x = "Pledged", y = "Count")
+  labs(x = "Pledged", y = "Count", title = "Distibution of the Amount of 
+  Money Pledged to Each Project")
 
 ggplot(kickstart, mapping = aes(x = goal)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
-  labs(x = "Goal", y = "Count")
+  labs(x = "Goal", y = "Count", title = "Distibution of the Goal Amount of 
+  Money Each Project wanted to Raise")
 
 ggplot(kickstart, mapping = aes(x = backers)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
-  labs(x = "Backers", y = "Count")
+  labs(x = "Backers", y = "Count", title = "Distibution of Backers for Each
+       Project")
 ```
 The graphs clearly shows that big projects are hardly launched on kickstarter. 
-It also shows that the pledged amount is not much and the number of backers 
-for each project is also above 100 only for some projects. We can assume that 
-smaller projects would have a higher chance of being successful on this platform
+It also shows that the pledged amount is typically smaller than the goal amount
+typically for larger projects. Additionally, the number of backers is only above
+100 for only a small number of projects. We can assume that smaller projects 
+would have a higher chance of being successful on this platform
 rather than the bigger ones that have a bigger goal and require more money and
 backers.
+```{r}
+kickstart %>% 
+   filter(pledged >= 4000) %>% 
+  count(state) %>% 
+   mutate(freq = (n / sum(n)))
+```
+
+```{r}
+kickstart %>% 
+   filter(pledged < 4000) %>% 
+  count(state) %>% 
+   mutate(freq = (n / sum(n)))
+```
 
 
-```{r new_variables}
+```{r standardized_new_variables}
 kickstart_mutated <- kickstart %>%
   mutate(goal = ((goal- mean(goal)) / sd(goal)),
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
@@ -348,6 +368,7 @@ tested on 2500 observations that we get from the dataset.
 #train_state
 #true_state
 ```
+
 ```{r set_seed}
 set.seed(04272020)
 ```
@@ -380,12 +401,13 @@ plot(k.optm,
      ylab = "Accuracy level")
 which.max(values)
 ```
-We get the highest accuracy when the value of K is 2. The accuracy is 
-99% for a model like that. We can also see this from the graph. 
+We get the highest accuracy of 99% when the value of K is 1. The graph also
+displays this outcome and shows that prediction accuracy tends to decrease
+as k increases.
 
 ## Logistic Regression Model 
 
-```{r using_variables_in_knn}
+```{r logistic_model_using_same_variables_as_knn}
 kickstart_train_log <- kickstart_mutated %>%
   slice(-indices) %>%
   select(goal, pledged, backers, state) 
@@ -398,7 +420,7 @@ tidy(m_full)
 $$\widehat{\mbox{state}} = (intercept) + (goal_num)~\mbox{goal} + (backers_num)~\mbox{backers} + (pledged_num)~\mbox{pledged}$$
 
 
-```{r full_model}
+```{r best_logistic_model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
                   results = "hide")
 
@@ -424,7 +446,7 @@ luck. Anyone have any ideas?
 talk about p-values 
 
 
-```{r prediction_accuracy}
+```{r prediction_accuracy_of_log_model}
 pred_log_odds <- augment(m_full, newdata = kickstart_test) %>% 
   mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
   mutate(prob = ifelse(is.nan(prob), 1, prob)) %>%
@@ -434,9 +456,9 @@ pred_log_odds <- augment(m_full, newdata = kickstart_test) %>%
 mean(true_state == pred_log_odds)
 ```
 
-```{r regression}
+```{r regression_interaction_pledged_and_goal}
 lm_interaction <- lm(factor(state) ~ pledged + goal + pledged:goal, 
-             data =kickstart_train_log)
+             data = kickstart_train_log)
 
 lm_interaction%>%
   tidy() %>%
@@ -444,14 +466,14 @@ lm_interaction%>%
 ```
 
 ```{r}
-sample_stat <- kickstart_train_log%>%
-  specify(pledged ~ goal) %>% 
-  calculate(stat = "slope")%>%
+sample_stat <- kickstart_train_log %>%
+  specify(pledged ~ goal) %>%
+  calculate(stat = "slope") %>%
   pull(stat)
 sample_stat
 
 slope_val <- kickstart_train_log %>%
-  specify(pledged~goal) %>% 
+  specify(pledged ~ goal) %>%
   hypothesize(null = "independence") %>%
   generate(reps = 500, type = "permute") %>%
   calculate(stat = "slope")
@@ -584,7 +606,8 @@ How do we fix this?
     - usd_pledged
     - etc.
     
-    
+  - success rates of big projects vs. smaller ones
+  
 THINGS TO GO BACK OVER:
 -organize cleaning data code 
 -do we need to use outlier set for everything or can they be considered
