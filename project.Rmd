@@ -361,18 +361,6 @@ true_state <- kickstart_mutated %>%
   pull(state)
 ```
 
-We make the vectors required for training and testing the model. The model is 
-tested on 880 observations that we get from the dataset. 
-
-```{r view_knn_data}
-#kickstart_train
-#kickstart_test
-#train_state
-#true_state
-```
-
-
-
 ```{r knn_best}
 i = 1
 k.optm = 1
@@ -403,6 +391,26 @@ which.max(values)
 
 
 ```
+
+We set the indices, the number of observations to be tested on, to be 880. 
+
+We make the vectors required for training and testing the model. We set the 
+indices to be 880. The model is tested on the number of indices observations 
+that we get from the dataset. 
+
+We create two new datasets, kickstart_train and kickstart_test. kickstart_train 
+contains only observations that are not in the row indices created, and 
+kickstart_test contains only observations that are in the row indices created. 
+We create create a vector of the class labels for the training dataset and call 
+it train_state. We create a vector of true kickstart state in our test dataset 
+and call it true_state. 
+
+We fit the k-nearest neighbors model on our raw training dataset. We let k 
+varying from 1 to 79 and calculate the value of k that results in the greatest 
+prediction accuracy in our dataset along with its associated prediction 
+accuracy. We then plot all the values of k and its associated prediction 
+accuracy to examine the trend. 
+
 We get the highest accuracy of 99% when the value of K is 1. The graph also
 displays this outcome and shows that prediction accuracy tends to decrease
 as k increases.
