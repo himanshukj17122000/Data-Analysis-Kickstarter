@@ -290,6 +290,8 @@ and to get better results. Outliers would have an effect on how the data is
 displayed. 
 
 ## Main Category
+For all the linear models we make, we assume that all observations are 
+independent on one another. 
 
 ```{r main_category_model}
 m_main <- glm(factor(state) ~ goal + backers + pledged + main_category,
