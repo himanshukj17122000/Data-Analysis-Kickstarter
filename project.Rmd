@@ -410,13 +410,12 @@ tidy(m_full) %>%
 
 The coefficient for pledged means that, holding all other variables constant, 
 for each dollar increase in money pledged, we would expect the log-odds of a 
-start-up being successful to increase by approximately 5.32*10^4.
+start-up being successful to increase on average by approximately 5.32*10^4.
 
 The coefficient for goal means that, holding all other variables constant, 
 for each dollar increase in the goal amount of money a company would like to 
 receive, we would expect the log-odds of a start-up being successful to 
-decrease by approximately 1.45*10^6.
-
+decrease on average by approximately 1.45*10^6.
 
 Since, the p-values for money pledged and goal are 1.56*10^-6 and 1.55*10^-6 
 respectively, that means both variables are significant in predicting the state
@@ -485,8 +484,8 @@ ggplot(data = kickstart_outlier, mapping = aes(y = pledged, x = goal,
 A linear model predicting the amount of money pledged from the goal, shows
 that goal is not a strong predictor of pledged. Just because a project demands 
 a certain sum of money does not imply that they will receive it, as seen in 
-the visualization above in most failed projects.
-
+the visualization above in most failed projects. We can also see that the slope
+of successful campaigns is either 1 or greater than that. 
 
 ## Predict Potential Project Success
 
