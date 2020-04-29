@@ -304,14 +304,14 @@ The graphs clearly shows that big projects are hardly launched on kickstarter.
 It also shows that the pledged amount is typically smaller than the goal amount
 typically for larger projects. Additionally, the number of backers is only above
 100 for only a small number of projects. 
-```{r}
+```{r calc_freq_big}
 kickstart %>% 
    filter(pledged >= 4000) %>% 
   count(state) %>% 
    mutate(freq = (n / sum(n)))
 ```
 
-```{r}
+```{r calc_freq_small}
 kickstart %>% 
    filter(pledged < 4000) %>% 
   count(state) %>% 
@@ -445,12 +445,6 @@ had backers as one of the factors but from our backward eliminiation process
 we can conclude that only goal and pledged are the necessary variables.
 
 
-COMMENT: how do we get this function to work? Shawn said to google it but no 
-luck. Anyone have any ideas?
-
-talk about p-values 
-
-
 ```{r prediction_accuracy_of_log_model}
 pred_log_odds <- augment(m_full, newdata = kickstart_test) %>% 
   mutate(prob = exp(.fitted)/ (1 + exp(.fitted))) %>%
@@ -466,17 +460,8 @@ lm_interaction <- lm(pledged ~ goal,
              data = kickstart_train_log)
 
 lm_interaction%>%
-  tidy() 
-  #select(term, estimate)
-```
-
-```{r}
-sample_stat <- kickstart_train_log %>%
-  specify(pledged ~ goal) %>%
-  calculate(stat = "slope") %>%
-  pull(stat)
-sample_stat
-
+  tidy() %>%
+  select(term, estimate, p.value)
 ```
 
 ```{r making_a_graph, fig.width = 9, fig.height = 5}
@@ -506,10 +491,7 @@ tidy(m_main)
 glance(m_main)
 ```
 We included the categorical variable main category to check if it has any 
-influence over the state of the startup. From the table above we can see that 
-the value changed as the category changes with dance on average  increasing the
-state of success by 11.99. Other than that, other categories don't have a big 
-influence on the outcome of the startup. However, the p-values are generally
+influence over the state of the startup. From the table above we can see that the p-values are generally
 above the significance level of 0.05, so we do not consider main category as 
 a major predictor of success.
 
@@ -537,19 +519,17 @@ mean_pledged
 mean_backers
 ```
 
-we need to decide specific values for our potential projects and explain 
-why we chose these values
 
 ```{r predicting_project_succes}
-new_project <- tibble(goal = c(100, -.46, 27000),
-                      backers = c(15, .77, 7500),
-                      pledged = c(60, -1.5, 45000))
+new_project <- tibble(goal = c(100, 9709.67, 27000),
+                      backers = c(15, 240.6017, 7500),
+                      pledged = c(60, 19071.34, 45000))
 
-pred_project <- augment(m_full, newdata = new_project) %>% 
-  pull(.fitted) 
+#pred_project <- augment(m_full, newdata = new_project) %>% 
+  #pull(.fitted) 
 
-pred_probs <- exp(pred_project) / (1 + exp(pred_project))
-pred_probs
+#pred_probs <- exp(pred_project) / (1 + exp(pred_project))
+#pred_probs
 
 train <- kickstart_mutated %>% 
   select(goal, pledged, backers)
@@ -557,15 +537,11 @@ train <- kickstart_mutated %>%
 success_state <- kickstart_mutated %>% 
   pull(state) 
 
-library(class)
 mod_knn <- knn(train, new_project, success_state, k = 400, prob = F, use.all = T)
 mod_knn
 
 ```
-why is it all 0?
-we tried using glm model to predict since it was 0.88% more accurate,
-but it doesn't do what we need it too. Values are all 0.
-How do we fix this?
+
 
 ## ANALYSIS
 
