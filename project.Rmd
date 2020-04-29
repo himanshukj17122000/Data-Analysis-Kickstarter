@@ -1,5 +1,5 @@
 ---
-title: "What Makes A Successful Startup Company?"
+title: "What Makes A Successful Project Idea?"
 author: "Lab Group - Tessa Grabowski, Himanshu Jain, Paul Noujaim, Tri Truong"
 subtitle: 'Kickstarter Data Analysis'
 output:
@@ -66,28 +66,13 @@ kickstart <- kickstart %>%
    mutate(state = as.factor(state))
 kickstart
 ```
+
 ```{r outlier_data}
 kickstart_outlier <- kickstart %>% 
   filter(pledged <= 11933.5) %>%
   filter(goal <= 34500) %>%
   filter(backers <= 154.4)
 ```
-
-```{r success_rate}
-kickstart %>%
-  group_by(state) %>%
-  count(state) %>%
-  ungroup() %>%
-  mutate(rate = n / sum(n)) %>%
-  arrange(n)
-```
-From this table, we see that most of the companies have a state of either failed
-or successful. Thus when we are analyzing our data, we will filter it to only 
-include these companies. We are interested in what makes a project successful
-versus unsuccessful, so any entry with a different state will be irrelevant to 
-our analysis. We can also see that most of the companies failed so it is really
-important to understand the problems in order to launch a successful campaign. 
-Hence, we believe that this analysis would be helpful for future entrepreneurs.
 
 
 ```{r main_categories}
@@ -99,6 +84,7 @@ kickstart%>%
   ungroup()%>%
   mutate(share_of_projects = n/sum(n))
 ```
+
 ```{r category_wise}
 kickstart%>%
   group_by(category)%>%
@@ -177,105 +163,10 @@ In our analysis it could be interesting to compare the goal of a creator to how
 much they received from pledged money as well. Looking at these two variables 
 and how they interact could be very telling of the outcome of the project.
 
-# Codebook
-
-We can see that there are 323750 rows and 13 relevant columns in the dataset
-we are using.
-
-Variable-> Label
-ID -> ID of the project that was listed
-name-> Name of the Project that was listed
-category->Category of the project that was listed
-main_category-> Main catefgory to which the project belonged
-currency-> The currency funding was requested In
-deadline-> The deadline to get the required funding
-goal-> The amount that was requested
-launched-> The date when the funding was started
-pledged-> The amount pledged by the backers
-state-> The final outcome of the project
-backers-> Number of people who funded the project
-country-> Country where the project was launched
-usd pledged-> US Dollars that the project got
-
-Field Name->Value Label
-currency 
-AUD Australian Dollars
-CAD Canadian Dollars
-CHF Swiss Franc
-DKK Danish Krone
-EUR Euro
-GBP Pound Sterling
-MXN Mexican Peso
-NOK Norwegian Krone
-NZD New Zealand Dollar
-SEK Swedish krona
-USD US Dollar
-
-country 
-AT Austria
-AU Australia
-CA Canada
-CH Switzerland
-DE Germany
-DK Denmark
-ES Spain
-FR France
-GB United Kingdom
-IE Ireland
-IT Italy
-MX Mexico
-NL Netherlands
-NO Norway
-NZ New Zealand
-SE Sweden
-SG Singapore
-US United States
-
-
-# Statistical Methods 
-
-Further, in our analysis, we will use other statistical methods to answer our 
-question of what makes a project successful. We will create our own hypothetical
-projects and determine statistics for the needed variables. Then we will use
-the knn method to predict if this project will be successful or not based on the
-data we have. 
-
-We also will use confidence intervals for the mean amount of money required,
-number of backers necessary, amount pledged, etc. that we expect a successful
-company to have. 
-
-Finally, we will use a linear regression model to figure out which variables are
-the most significant in determining the eventual 'state' of the startup, 
-whether they ended up being successful or unsuccessful.
-
-Using these methods, we will hopefully be able to determine why certain projects
-are successful while others are not and use this information to help us in the
-future if we ever want to start our own companies.
-
-
-
-
-## Clean Data 
-
 ```{r set_seed1}
 set.seed(04232020)
 ```
 
-
-
-We filtered out the data since we want to concentrate on the startups that 
-either failed or were successful. There are many other states but some of them
-have insignificant values so we filtered the dataset. We are also looking at the 
-US specific startups since other countries have different startup ecosystem and 
-just looking at this dataset and making conclusions for them would give us 
-inaccurate results. We are basically using this to make sure that all the 
-observations used orriginate from the same country.
-
-Since our dataset had too many observations, we decided to stick to using a 
-smaller fraction of it in order to not break our program. 
-
-The outliers were observed and removed to make the dataset more generic and 
-to get better results. Outliers would have an effect on our results. 
 
 ```{r visualizations_minus_outliers}
 ggplot(kickstart_outlier, mapping = aes(x = pledged)) +
@@ -296,10 +187,14 @@ ggplot(kickstart_outlier, mapping = aes(x = backers)) +
   labs(x = "Backers", y = "Count", title = "Distibution of Backers for Each
        Project")
 ```
-The graphs clearly shows that big projects are hardly launched on kickstarter. 
+
+By defining a large project with one that has over $4000 pledged to it, 
+the graphs show that big projects are launched less often than 
+smaller projects on kickstarter. 
 It also shows that the pledged amount is typically smaller than the goal amount
-typically for larger projects. Additionally, the number of backers is only above
-100 for only a small number of projects. 
+for larger projects. 
+Additionally, the number of backers is only above 100 for only a small 
+number of projects. 
 
 ```{r calc_freq_big}
 kickstart %>% 
@@ -314,10 +209,54 @@ kickstart %>%
   count(state) %>% 
    mutate(freq = (n / sum(n)))
 ```
-By defining a large project with one that has over $4000 pledged to it, we can
-see that larger projects tend to have a much higher success rate relative to
-their smaller counterparts.
 
+We can see that larger projects tend to have a much higher success rate (85.4%)
+relative to their smaller counterparts (24.8%).
+
+
+# Codebook
+
+We can see that there are 11468 rows and 13 relevant columns in the dataset
+we are using.
+
+Variable-> Label
+`ID` -> ID of the project that was listed
+`name`-> Name of the Project that was listed
+`category`->Category of the project that was listed
+`main_category`-> Main catefgory to which the project belonged
+`currency`-> The currency funding was requested In
+`deadline`-> The deadline to get the required funding
+`goal`-> The amount that was requested
+`launched`-> The date when the funding was started
+`pledged`-> The amount pledged by the backers
+`state`-> The final outcome of the project
+`backers`-> Number of people who funded the project
+`country`-> Country where the project was launched
+`usd pledged`-> US Dollars that the project got
+
+
+# Statistical Methods 
+
+In considering the state of a project, we hypothesize that goal, pledged, 
+backers, and main category will be the most significant predictors of whether
+or not a project succeeds.
+
+Further, in our analysis, we will use other statistical methods to answer our 
+question of what makes a project successful. We will create our own hypothetical
+projects and determine statistics for the needed variables. Then we will use
+the knn method to predict if this project will be successful or not based on the
+data we have. 
+
+Finally, we will use a logistic regression model to figure out which variables
+are the most significant in determining the eventual 'state' of the startup, 
+whether they ended up being successful or unsuccessful.
+
+Using these methods, we will hopefully be able to determine why certain projects
+are successful while others are not and use this information to help us in the
+future if we ever want to start our own projects.
+
+
+## Standardize Data 
 
 ```{r standardized_new_variables}
 kickstart_mutated <- kickstart %>%
@@ -327,12 +266,45 @@ kickstart_mutated <- kickstart %>%
     backers = ((backers - mean(backers)) / sd(backers))
     )
 ```
-We standardised the variables to improve the accuracy of our KNN models. KNN 
+
+We standardized the variables to improve the accuracy of our K-NN models. K-NN 
 is a distance based algorithm which is affected by the scale of the variables. 
 Hence, we need to make sure that each feature has 0 mean and 1 standard 
 deviation. 
 
-## Methods of Statistical Analysis and Results
+## METHODS AND RESULTS
+
+We filtered out the data since we want to concentrate on the startups that 
+either failed or were successful. There are many other states but some of them
+have insignificant values so we filtered the dataset. We are also looking at the 
+US specific startups since other countries have different startup ecosystem and 
+just looking at this dataset and making conclusions for them would give us 
+inaccurate results. We are basically using this to make sure that all the 
+observations used orriginate from the same country.
+
+Since our dataset had too many observations, we decided to stick to using a 
+smaller fraction of it in order to not break our program. 
+
+The outliers were observed and removed to make the visualizations more generic 
+and to get better results. Outliers would have an effect on how the data is
+displayed. 
+
+## Main Category
+
+```{r main_category_model}
+m_main <- glm(factor(state) ~ goal + backers + pledged + main_category,
+            data = kickstart, family = "binomial")
+
+tidy(m_main) %>%
+  select(term, estimate, p.value)
+```
+
+In order to ensure that, we have the best fit model, we tested to 
+see if it had any effect on the outcome of state. After fitting a linear 
+regression model, it was observed that main category did not have a 
+statistically significant effect, since each category’s p-value was greater 
+than our alpha value of 0.05. Therfore, we do not consider the main category
+variable in further models.
 
 ## K-NN
 
@@ -389,30 +361,40 @@ which.max(values)
 
 We set the indices, the number of observations to be tested on, to be 880. 
 
-We make the vectors required for training and testing the model. We set the 
-indices to be 880. The model is tested on the number of indices observations 
-that we get from the dataset. 
+We made the vectors required for training and testing the model. The model is 
+tested on the number of observations that we get from the dataset. 
 
-We create two new datasets, kickstart_train and kickstart_test. kickstart_train 
-contains only observations that are not in the row indices created, and 
-kickstart_test contains only observations that are in the row indices created.
+We created two new datasets, kickstart_train and kickstart_test using the 
+three predicting numeric variables (goal, pledged, backers) for the categorical 
+variable state. 
+kickstart_train contains only observations that are not in the row indices 
+created, and kickstart_test contains only observations that are in the row 
+indices created.
 
-We create a vector of the class labels for the training dataset and call 
-it train_state. We create a vector of true kickstart state in our test dataset 
-and call it true_state. 
+We created a vector of the class labels for the training dataset and called 
+it train_state. We created a vector of true kickstart state in our test dataset 
+and called it true_state. 
 
 We fit the k-nearest neighbors model on our raw training dataset. We let k 
-varying from 1 to 79 and calculate the value of k that results in the greatest 
+vary from 1 to 79 and calculated the value of k that results in the greatest 
 prediction accuracy in our dataset along with its associated prediction 
-accuracy. We then plot all the values of k and its associated prediction 
+accuracy. We then plotted all the values of k and its associated prediction 
 accuracy to examine the trend. 
 
 We get the highest accuracy of 95.23% when the value of K is 1. The graph also
 displays this outcome and shows that prediction accuracy tends to decrease
-as k increases.
+as k increases, suggesting that backers, pledged, and goal are effective 
+predictors of state according to the k-NN model.
+
+We use this prediction accuracy to predict the project's success. Given a new
+start-up project, we plot that project acordingly to its attributes, check 
+for the nearest neightbor of the project, and assign that project to the 
+according state. 
 
 
 ## Logistic Regression Model 
+
+Let $\alpha = 0.05:$
 
 ```{r logistic_model_using_same_variables_as_knn}
 kickstart_train_log <- kickstart_mutated %>%
@@ -422,19 +404,43 @@ kickstart_train_log <- kickstart_mutated %>%
 m_full <- glm(state ~ goal + backers + pledged,
             data = kickstart_train_log, family = "binomial")
 
-# tidy(m_full)
+tidy(m_full) %>%
+  select(term, estimate, p.value)
 ```
-$$\widehat{\mbox{state}} = (intercept) + (goal_num)~\mbox{goal} + (backers_num)~\mbox{backers} + (pledged_num)~\mbox{pledged}$$
+
+The coefficient for pledged means that, holding all other variables constant, 
+for each dollar increase in money pledged, we would expect the log-odds of a 
+start-up being successful to increase by approximately 5.32*10^4.
+
+The coefficient for goal means that, holding all other variables constant, 
+for each dollar increase in the goal amount of money a company would like to 
+receive, we would expect the log-odds of a start-up being successful to 
+decrease by approximately 1.45*10^6.
+
+
+Since, the p-values for money pledged and goal are 1.56*10^-6 and 1.55*10^-6 
+respectively, that means both variables are significant in predicting the state
+of a start-up at the alpha = .05 level. 
+
+However, since the p-value for backers is 7.97*10^-1, the variable is not a 
+significant predictor of the state of a start-up at the alpha = .05 level. 
+
+It is important to note that these two variables share an 
+opposite relationship with the state variable. Pledged has a positive 
+relationship with state, meaning that with each increase in the amount of
+dollars pledged to a start-up will increase the probability that it will become 
+successful. Whereas, goal shares a negative relationship with state, meaning 
+that with each increase in the amount of dollars a start-up requires will 
+decrease the probability that it will become successful.
 
 
 ```{r best_logistic_model}
 step_full <- step(m_full, direction = "backward", trace = FALSE, 
                   results = "hide")
 
-# tidy(step_full)
+tidy(step_full) %>%
+  select(term, estimate, p.value)
 ```
-$$\widehat{\mbox{state}} = -4121.634 -98315.777~\mbox{goal} + 
-17313.216~\mbox{pledged}$$
 
 We believe that goal and the pledged amount are the two most important variables
 responsible for predicting the startups success. We started with a model that 
@@ -450,14 +456,20 @@ pred_log_odds <- augment(m_full, newdata = kickstart_test) %>%
   pull(class)
 
 result_pred_log_odds <- mean(true_state == pred_log_odds)
+result_pred_log_odds
 ```
+
+Using the same variables as our k-NN model, we can see that the accuracy for the 
+regression model predicting state is 100%, which is slightly higher than the 
+accuracy we got from our K-NN model, which had the highest accuracy at 95.23%.
+This suggests that the regression model is better at predicting state given 
+the same variables.
 
 ```{r regression_interaction_pledged_and_goal}
 lm_interaction <- lm(pledged ~ goal, 
              data = kickstart_train_log)
 
-table_interaction <- lm_interaction%>%
-  tidy() %>%
+tidy(lm_interaction) %>%
   select(term, estimate, p.value)
 ```
 
@@ -470,26 +482,11 @@ ggplot(data = kickstart_outlier, mapping = aes(y = pledged, x = goal,
   theme_bw(base_size = 16)
 ```
 
+A linear model predicting the amount of money pledged from the goal, shows
+that goal is not a strong predictor of pledged. Just because a project demands 
+a certain sum of money does not imply that they will receive it, as seen in 
+the visualization above in most failed projects.
 
-
-discuss how compares to knn test
-We can see that the accuracy for a regression model is 99.88%, which is much 
-more than the accuracy we got from our KNN model. The KNN model had the 
-highest accuracy at 99%. 
-
-## Does category change anything?
-
-```{r main_category_model}
-m_main <- glm(factor(state) ~ goal + backers + pledged + main_category,
-            data = kickstart, family = "binomial")
-
-#tidy(m_main)
-#glance(m_main)
-```
-We included the categorical variable main category to check if it has any 
-influence over the state of the startup. From the table above we can see that the p-values are generally
-above the significance level of 0.05, so we do not consider main category as 
-a major predictor of success.
 
 ## Predict Potential Project Success
 
@@ -508,22 +505,19 @@ median_backers <- kickstart_mutated %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(med_backers = median(backers))
+
+median_goal
+median_pledged
+median_backers
 ```
 
+We will use these values as a benchmark when testing potential hypothetical
+projects.
 
-```{r predicting_project_succes}
-new_project <- tibble(#goal = c(1000, 1000, 9709.67, 27000, 27000),
-                      #backers = c(5, 70, 240.6017, 7500, 7500),
-                      #pledged = c(30, 30, 19071.34, 45000, 400))
-                      goal = c(-0.05, -0.05, -0.0308734, 2, 2),
+```{r predicting_project_success_with_standardized_values}
+new_project <- tibble(goal = c(-0.05, -0.05, -0.0308734, 2, 2),
                       backers = c(-0.1, 4, -0.06979549, 0.8, 0.8),
                       pledged = c(-0.5, -0.5, -0.07385757, 4, 3))
-
-#pred_project <- augment(m_full, newdata = new_project) %>% 
-  #pull(.fitted) 
-
-#pred_probs <- exp(pred_project) / (1 + exp(pred_project))
-#pred_probs
 
 train <- kickstart_mutated %>% 
   select(goal, pledged, backers)
@@ -535,48 +529,123 @@ mod_knn <- knn(train, new_project, success_state, k = 1, prob = F, use.all = T)
 mod_knn
 ```
 
+We wanted to predict a potential project’s success, simulating what it would be 
+like if we were to create our own individual projects. 
 
-## ANALYSIS
+We proposed five possible projects with different values for goal, pledged, 
+and backers. Our third project used the median values for each of the three 
+variables to see how the average project proposed on kickstarter would play out. 
+We used the median value instead of the mean since our data had outliers 
+present, which would skew the mean value. All the other proposed projects had 
+considerably random values chosen. 
+
+We used the k-NN test to predict the state of these new projects, and the 
+median project resulted in success. This means that the average project 
+compared to the 1 nearest neighbor is 95.23 % likely to be successful.
+
+The first two projects had the same random values for goal and pledged, both 
+being lower than the respective median value. However, the backers for both was
+varied to see if the number of backers would change the outcome with all else 
+constant. The second project had a much larger value for backers, but it still 
+resulted in failure like the first. This is consistent with what we observed in
+our logistic regression model, which showed that backers does not have a 
+significant effect in predicting the outcome of a project.
+
+Our last two projects had random values for goal and backers, both being 
+greater than the respective median value. However, the pledged for both was 
+different to see if the amount pledged would change the outcome with all else 
+constant. The last project had a lower value for amount pledged and resulted in
+a failure. The fourth project resulted in success though, which implies that 
+the amount pledged is important to determining the state of the project.
 
 
+## DISCUSSION
+
+Through our analysis, we were able to determine that the variables `goal` and 
+`pledged` are the most essential factors in deciding the outcome of a project,
+either successful or failed. This is different than what our hypothesis stated,
+which predicted that `goal`, `pledged`, `backers`, and `main_category` would 
+all be predictors of the outcome of state.
+
+First, we eliminated `main_category` as a predictor by fitting a linear 
+regression model and observing the p-values of each main category to be 
+insignificant at our alpha level of 0.05.
+
+Next, using our k-NN model, we determined that we could predict with a 95.23 % 
+accuracy the state of a project given only the variables `goal`, `pledged`, 
+and `backers` when the number of nearest neighbors is equal to 1. While 1 seems
+like a very small number of observations to be compared to, this can be
+explained due to our high number of observations in general and the trends 
+detected. Given the visualization that plots the relationship between `goal` 
+and `pledged`, we see that there is a very sharp distinction between the 
+projects that have succeeded or failed based on their pledged and goal values. 
+Therefore, a project's nearest neighbor most likely has a high chance of 
+having the same state if pledged and goal values are very similar. We found
+out through our logistic model next that `backers` is less essential to
+predicting state.
+
+The logistic model further reinforced the value of the variables `pledged` and 
+`goal` at predicting the state of a project. It revealed the variables
+pledged and goal to be extremely significant in predicting the state of a given
+project at the alpha = .05 level. Their p-values being 
+1.56*10^-6 and 1.55*10^-6 respectively, meaning that these two variables are 
+essential in determining if your project will be a success or a failure, while 
+backers is not. Backers was shown to be an 
+insignificant predictor of state with a p-value of only 7.97 *10^-1 meaning 
+the variable has limited capacity to predict the state of a company. 
+In essence, when beginning a start-up the amount of money pledged to one’s 
+startup in relation to its goal amount will be the ultimate determinate of 
+success. 
+
+Despite the ineffectiveness of backers as a predictor of state, when using 
+the logistic model to predict the success of a project, we had to consider 
+`backers` still in order to provide an equal comparison between the k-NN model 
+and the logistic model. According to these three variables, the logistic 
+regression model predicts the state of a project with 100 % accuracy,
+further proving the importance of `goal` and `pledged` as predictors, while 
+also suggesting that `backers` may have some effect even if it may be small.
+
+Finally, we created a model using the k-NN test to determine the success of 
+hypothetical projects. In doing so, we further disproved the value of 
+`backers` as significant in predicting state, since when both pledged and goal
+were held constant in two different potential projects, a large increase 
+in backers did not cause the state to change to be successful. However, when
+goal and backers were held constant and even a relatively small increase in 
+pledged occurred between two projects, the state changed from failed to 
+successful. 
+
+In retrospect, there are a few things we could have done differently to improve
+the results of our analysis. First, our original data set included 280,000 plus
+observations, which caused us problems in trying to perform tests. Although we
+took a smaller sample of this data, it might have been better to have chosen
+a dataset that was smaller from the start that would be easier to use in
+computation. Additionally, the data spans over the years of 2010 to 2016,
+which may be slightly outdated for predicting a project that would
+be successful in the present, since it is possible that trends have changed
+since then. Finally, in predicting the outcome of our hypothetical projects,
+we decided to use the k-NN model over the logistic regression model even
+though the logistic model had a higher prediction accuracy. This was due 
+to coding errors in R. When the model tried to predict the outcome of the
+inputted values, we continuously got values of zero percent success rate even 
+when we knew this was not the case. Thus, using the logistic regression model 
+would have in theory been more accurate, but we were unable to do so. The k-NN
+model, however, still had a high prediction accuracy, so our predicted project
+outcomes are still likely valid. 
+
+If we wanted to further explore this analysis, we could take into account 
+projects proposed outside of the US and see if our prediction variables still
+hold the same value in determining state. In this situation, we would need
+to use the usd_pledged variable instead of the pledged variable in order 
+standardize the currency in US dollars. Additionally, we could make use of the
+two variables deadline and launched to determine whether or not time elapsed 
+from start to deadline is a determining factor of success. For example, if
+projects with a short time between launch and deadline tend to have a 
+higher chance of success compared to those with longer elapsed time. 
 
 
-We use this prediction accuracy to predict the project's success. Given a new
-start-up project, we plot that project acordingly to its attributes, check 
-for the nearest neightbor of the project, and assign that project to the 
-according state. Using this method, the prediction accuracy is 95.23%, which is 
-the highest prediction accuracy we can get.
-
-
-
--discuss outliers and need to shrink data
--discuss k-nn test and 99% accuracy result
--discuss logistic regression model result and how backers and main_category
-  are not significant predictors
--compare knn and glm accuracy (99 vs 99.88)
--used glm because more accurate to predict potential project success
--explain why we chose the values of new project 
-  - explain results of that and how we could use these to our benefit in the
-    future 
--discuss what we could do differently
-    - data set huge
-    - had to make changes, cannot predict for bigger values after we removed
-    outliers
-    - usd_pledged
-    - used knn instead 
-    - etc.
-    
-  - success rates of big projects vs. smaller ones
-  - remove outliers for visualization purposes
+ 
   
-  further analysis:
-  - use interaction between pledged and goal
   
-THINGS TO GO BACK OVER:
--organize cleaning data code 
--do we need to use outlier set for everything or can they be considered
--knitting
--VISUALIZATIONS???
 
 
 
