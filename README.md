@@ -1,3 +1,5 @@
+### What Makes a Successful Project Idea in the USA
+
 For this project we decided to use the kickstart Dataset from Kaggle. There are 
 323750 rows and 13 relevant columns in this dataset. Kickstarter is a global 
 crowdfunding platform where different products can be listed in different 
