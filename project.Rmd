@@ -1,5 +1,5 @@
 ---
-title: "What Makes A Successful Project Idea?"
+title: "What Makes A Successful Project Idea in the USA?"
 author: "Lab Group - Tessa Grabowski, Himanshu Jain, Paul Noujaim, Tri Truong"
 subtitle: 'Kickstarter Data Analysis'
 output:
