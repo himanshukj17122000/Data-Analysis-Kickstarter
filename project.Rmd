@@ -475,9 +475,9 @@ tidy(lm_interaction) %>%
 ```{r conditions_check_independence}
 full_model <- augment(lm_interaction)
 ggplot(data = lm_interaction, aes(x = 1:nrow(full_model), y = .resid)) +
-geom_point() +
-labs(x = "Index", y = "Residual", title="Residuals vs Index",
- subtitle = "Both the variables don't seem independent")+
+  geom_point() +
+  labs(x = "Index", y = "Residual", title="Residuals vs Index",
+  subtitle = "Both the variables don't seem independent")+
   theme_minimal(base_size = 16)
 ```
 
