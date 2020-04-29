@@ -63,11 +63,14 @@ kickstart <- read_csv("./data/kickstart_smallest.csv")
 
 ```{r remove_outliers}
 kickstart <- kickstart %>% 
-   mutate(state = as.factor(state)) %>% 
+   mutate(state = as.factor(state))
+kickstart
+```
+```{r}
+kickstart_outlier <- kickstart %>% 
   filter(pledged <= 11933.5) %>%
   filter(goal <= 34500) %>%
-  filter(backers <= 154.4) 
-kickstart
+  filter(backers <= 154.4)
 ```
 
 
@@ -138,11 +141,6 @@ ggplot(data = pledged_needed, mapping = aes(x = state, y = mean,
   labs(title = "Successful Projects Generally Receive More Pledged Money",
        x = "State", y = "Pledged ($)", fill = "State")
 
-ggplot(data = kickstart, mapping = aes(y = pledged, x = goal, 
-                                           color = factor(state))) +
-  geom_point(alpha = 0.3) +
-  labs(color = "Goal of the Project", y = "Pledged Money") +
-  theme_bw(base_size = 16)
 ```
 This table shows that there is a large gap between the amount of money 
 pledged to projects that failed as opposed to those that were successful. The
@@ -284,19 +282,19 @@ The outliers were observed and removed to make the dataset more generic and
 to get better results. Outliers would have an effect on our results. 
 
 ```{r visualizations_minus_outliers}
-ggplot(kickstart, mapping = aes(x = pledged)) +
+ggplot(kickstart_outlier, mapping = aes(x = pledged)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Pledged", y = "Count", title = "Distibution of the Amount of 
   Money Pledged to Each Project")
 
-ggplot(kickstart, mapping = aes(x = goal)) +
+ggplot(kickstart_outlier, mapping = aes(x = goal)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Goal", y = "Count", title = "Distibution of the Goal Amount of 
   Money Each Project wanted to Raise")
 
-ggplot(kickstart, mapping = aes(x = backers)) +
+ggplot(kickstart_outlier, mapping = aes(x = backers)) +
   geom_histogram(alpha = .5, color = "darkgreen") +
   theme_bw() +
   labs(x = "Backers", y = "Count", title = "Distibution of Backers for Each
@@ -336,6 +334,8 @@ We standardised the variables to improve the accuracy of our KNN models. KNN
 is a distance based algorithm which is affected by the scale of the variables. 
 Hence, we need to make sure that each feature has 0 mean and 1 standard 
 deviation. 
+
+## Methods of Statistical Analysis and Results
 
 ## K-NN
 
@@ -436,11 +436,6 @@ responsible for predicting the startups success. We started with a model that
 had backers as one of the factors but from our backward eliminiation process
 we can conclude that only goal and pledged are the necessary variables.
 
-```{r conf_int_coefficients}
-#tidy(step_full, conf.int = TRUE, conf.level = 0.95)
-#confint(step_full)
-
-```
 
 COMMENT: how do we get this function to work? Shawn said to google it but no 
 luck. Anyone have any ideas?
@@ -459,12 +454,12 @@ mean(true_state == pred_log_odds)
 ```
 
 ```{r regression_interaction_pledged_and_goal}
-lm_interaction <- lm(factor(state) ~ pledged + goal + pledged:goal, 
+lm_interaction <- lm(pledged ~ goal, 
              data = kickstart_train_log)
 
 lm_interaction%>%
-  tidy() %>%
-  select(term, estimate)
+  tidy() 
+  #select(term, estimate)
 ```
 
 ```{r}
@@ -474,42 +469,16 @@ sample_stat <- kickstart_train_log %>%
   pull(stat)
 sample_stat
 
-slope_val <- kickstart_train_log %>%
-  specify(pledged ~ goal) %>%
-  hypothesize(null = "independence") %>%
-  generate(reps = 500, type = "permute") %>%
-  calculate(stat = "slope")
-slope_val
 ```
 
-```{r making_a_graph, fig.width=9, fig.height=5}
-ggplot(data = kickstart_train_log,
-       mapping = aes(
-         y = pledged,
-         x = goal,
-         color = factor(state)
-       )) +
+```{r making_a_graph, fig.width = 9, fig.height = 5}
+ggplot(data = kickstart_outlier, mapping = aes(y = pledged, x = goal, 
+                                           color = factor(state))) +
   geom_point(alpha = 0.3) +
-  labs(color = "State", y = "Pledged Amount", x = "Goal",
-       title = "Standardized Scatterplot Pledged Amount vs. Goal") +
+  labs(title = "Gaol and Pledged Are Not Perfectly Correlated",
+  color = "State of the Project", y = "Pledged Money", x = "Goal") +
   theme_bw(base_size = 16)
 
-slope_val %>%
-  visualise(alpha = 0.5) +
-  geom_vline(
-    xintercept = 0,
-    color = "purple", lty = 2, size = 1) +
-  theme_light(base_size = 18) +
-  shade_p_value(
-    obs_stat = sample_stat,
-    direction = "two_sided",
-    color = "red" ,pink = "green")
-
-```
-
-```{r get_p_value}
-slope_val%>%
-  get_p_value(obs_stat = sample_stat, direction = "two_sided")
 ```
 
 
@@ -539,17 +508,17 @@ a major predictor of success.
 ## Predict Potential Project Success
 
 ```{r create_values}
-mean_goal <- kickstart_mutated %>%
+mean_goal <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_goal = mean(goal))
 
-mean_pledged <- kickstart_mutated %>%
+mean_pledged <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_pledged = mean(pledged))
 
-mean_backers <- kickstart_mutated %>%
+mean_backers <- kickstart %>%
   group_by(state) %>%
   filter(state =='successful') %>%
   summarise(mean_backers = mean(backers))
@@ -606,9 +575,14 @@ How do we fix this?
     - had to make changes, cannot predict for bigger values after we removed
     outliers
     - usd_pledged
+    - used knn instead 
     - etc.
     
   - success rates of big projects vs. smaller ones
+  - remove outliers for visualization purposes
+  
+  further analysis:
+  - use interaction between pledged and goal
   
 THINGS TO GO BACK OVER:
 -organize cleaning data code 
