@@ -58,7 +58,16 @@ library(dplyr)
 library(infer)
 ```
 ```{r reading_the_data}
-kickstart <- read_csv("kickstart_small.csv")
+kickstart <- read_csv("./data/kickstart_smallest.csv")
+```
+
+```{r}
+kickstart <- kickstart %>% 
+   mutate(state = as.factor(state)) %>% 
+  filter(pledged <= 11933.5) %>%
+  filter(goal <= 34500) %>%
+  filter(backers <= 154.4) 
+kickstart
 ```
 
 
@@ -305,10 +314,7 @@ ggplot(kickstart, mapping = aes(x = backers)) +
 The graphs clearly shows that big projects are hardly launched on kickstarter. 
 It also shows that the pledged amount is typically smaller than the goal amount
 typically for larger projects. Additionally, the number of backers is only above
-100 for only a small number of projects. We can assume that smaller projects 
-would have a higher chance of being successful on this platform
-rather than the bigger ones that have a bigger goal and require more money and
-backers.
+100 for only a small number of projects. 
 ```{r}
 kickstart %>% 
    filter(pledged >= 4000) %>% 
@@ -322,13 +328,18 @@ kickstart %>%
   count(state) %>% 
    mutate(freq = (n / sum(n)))
 ```
+By defining a large project with one that has over $4000 pledged to it, we can
+see that larger projects tend to have a much higher success rate relative to
+their smaller counterparts.
 
 
 ```{r standardized_new_variables}
 kickstart_mutated <- kickstart %>%
-  mutate(goal = ((goal- mean(goal)) / sd(goal)),
+  mutate(
+    goal = ((goal- mean(goal)) / sd(goal)),
     pledged = ((pledged - mean(pledged)) / sd(pledged)),
-    backers = ((backers - mean(backers)) / sd(backers)))
+    backers = ((backers - mean(backers)) / sd(backers))
+    )
 ```
 We standardised the variables to improve the accuracy of our KNN models. KNN 
 is a distance based algorithm which is affected by the scale of the variables. 
@@ -344,11 +355,11 @@ indices <- sample(nrow(kickstart), 880)
 ```{r new_datasets_knn}
 kickstart_train <- kickstart_mutated %>%
   slice(-indices) %>%
-  select(goal, pledged,backers) 
+  select(goal, pledged, backers) 
 
 kickstart_test <- kickstart_mutated %>%
   slice(indices) %>%
-  select(goal, pledged,backers)
+  select(goal, pledged, backers)
   
 train_state <- kickstart_mutated %>%
   slice(-indices) %>%
@@ -394,12 +405,15 @@ for (i in 1:79) {
   x <- mean(trains_knn == true_state)
   values[i] <- x
 }
-tibble(values)
+tibble(values) %>% 
+  slice(which.max(values))
 plot(k.optm,
      type = "b",
      xlab = "K- Value",
      ylab = "Accuracy level")
-which.max(values)
+which.max(values) 
+
+
 ```
 We get the highest accuracy of 99% when the value of K is 1. The graph also
 displays this outcome and shows that prediction accuracy tends to decrease
@@ -412,7 +426,7 @@ kickstart_train_log <- kickstart_mutated %>%
   slice(-indices) %>%
   select(goal, pledged, backers, state) 
 
-m_full <- glm(factor(state) ~ goal + backers + pledged,
+m_full <- glm(state ~ goal + backers + pledged,
             data = kickstart_train_log, family = "binomial")
 
 tidy(m_full)
@@ -572,10 +586,10 @@ pred_project <- augment(m_full, newdata = new_project) %>%
 pred_probs <- exp(pred_project) / (1 + exp(pred_project))
 pred_probs
 
-train <- kickstart_new %>% 
+train <- kickstart_mutated %>% 
   select(goal, pledged, backers)
 
-success_state <- kickstart_new %>% 
+success_state <- kickstart_mutated %>% 
   pull(state) 
 
 library(class)
